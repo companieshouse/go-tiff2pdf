@@ -1,3 +1,4 @@
+LIBTIFF_PATH=vadz/libtiff
 all: service
 
 lib:
@@ -10,7 +11,7 @@ test:
 	go build -work -o build/t2p-test ./t2p-test
 
 deps:
-	-git clone git@github.com:vadz/libtiff.git ../../vadz/libtiff
-	pushd ../../vadz/libtiff; ./configure --disable-pixarlog --disable-zlib; make; popd
+	-git clone git@github.com:$(LIBTIFF_PATH).git ../../$(LIBTIFF_PATH)
+	cd ../../$(LIBTIFF_PATH) && ./configure --disable-pixarlog --disable-zlib && make
 
 .PHONY: all lib service deps

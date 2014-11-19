@@ -20,5 +20,5 @@ func main() {
 	}
 
 	log.Println("success?")
-	fmt.Println(string(bOut))
+	fmt.Print(string(bOut))
 }

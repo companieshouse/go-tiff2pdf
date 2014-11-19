@@ -12,26 +12,66 @@ package tiff2pdf
 */
 import "C"
 import "errors"
+import "sync"
 
 var (
 	ErrOpenFailed = errors.New("Opening TIFF failed")
 )
 
-var fdCount int
-var fdMap = make(map[int][]byte)
+type fd struct {
+	fd int
+	buffer []byte
+	offset int64
+}
 
-func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
-	name := C.CString("test.tif")
-	mode := C.CString("r")
+var fdCount = 10
+var mtx sync.Mutex
+var fdMap = make(map[int]*fd)
 
-	fdCount += 1
-	fd := fdCount
-	fdMap[fd] = tiff
+func NewFd(buffer []byte) *fd {
+	mtx.Lock()
+	thisFd := fdCount
+	fdCount++
+	mtx.Unlock()
 
-	tif := C.TIFFFdOpen(C.int(fd), name, mode)
+	fdo := &fd{
+		fd: thisFd,
+		buffer: buffer,
+	}
+	fdMap[thisFd] = fdo
+
+	return fdo
+}
+
+func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
+	newFd := NewFd(tiff)
+	tif := C.TIFFFdOpen(C.int(newFd.fd), C.CString(name), C.CString(mode))
 	if tif == nil {
 		return nil, ErrOpenFailed
 	}
+	return tif, nil
+}
 
-	return tiff, nil
+func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
+	input, err := createTiff(tiff, "test.tif", "rw")
+	if err != nil {
+		return nil, err
+	}
+
+	output, err := createTiff([]byte{}, "test.pdf", "wb")
+	if err != nil {
+		return nil, err
+	}
+
+	t2p := C.t2p_init()
+	if t2p == nil {
+		panic("FRIK!")
+	}
+	// t2p.outputfile = C.FILE(output.tif_fd)
+	C.t2p_write_pdf(t2p, input, output)
+	if t2p.t2p_error != 0 {
+		panic("FREEK!")
+	}
+
+	return fdMap[int(output.tif_fd)].buffer, nil
 }

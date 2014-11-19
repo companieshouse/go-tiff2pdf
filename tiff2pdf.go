@@ -8,7 +8,7 @@ package tiff2pdf
 #include <math.h>
 #include "c/libtiff.h"
 #include "c/tiff2pdf.c"
-#include "c/cgo.c"
+#include "c/tif_golang.c"
 */
 import "C"
 import "errors"
@@ -18,8 +18,8 @@ var (
 )
 
 func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
-	name := C.CString("name")
-	mode := C.CString("mode")
+	name := C.CString("test.tif")
+	mode := C.CString("r")
 
 	tif := C.TIFFFdOpen(-1, name, mode)
 	if tif == nil {

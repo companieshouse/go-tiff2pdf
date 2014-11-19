@@ -21,7 +21,11 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 		Cap:  size,
 	}
 	goSlice := *(*[]byte)(unsafe.Pointer(&hdr))
-	copy(fdMap[fd], goSlice)
+
+	for i := 0; i < size; i++ {
+		goSlice[i] = fdMap[fd][i]
+	}
+
 	return size
 }
 

@@ -17,11 +17,18 @@ var (
 	ErrOpenFailed = errors.New("Opening TIFF failed")
 )
 
+var fdCount int
+var fdMap = make(map[int][]byte)
+
 func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
 	name := C.CString("test.tif")
 	mode := C.CString("r")
 
-	tif := C.TIFFFdOpen(-1, name, mode)
+	fdCount += 1
+	fd := fdCount
+	fdMap[fd] = tiff
+
+	tif := C.TIFFFdOpen(C.int(fd), name, mode)
 	if tif == nil {
 		return nil, ErrOpenFailed
 	}

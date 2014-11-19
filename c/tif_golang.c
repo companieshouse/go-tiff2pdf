@@ -7,20 +7,18 @@
  * its documentation for any purpose is hereby granted without fee, provided
  * that (i) the above copyright notices and this permission notice appear in
  * all copies of the software and related documentation, and (ii) the names of
- * Sam Leffler and Silicon Graphics may not be used in any advertising or
- * publicity relating to the software without the specific, prior written
- * permission of Companies House.
+ * Companies House may not be used in any advertising or publicity relating
+ * to the software without the specific, prior written permission of Companies House.
  *
  * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
  * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
  *
- * IN NO EVENT SHALL COMPANIES HOUSE BE LIABLE FOR
- * ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
- * OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
- * WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
- * LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
- * OF THIS SOFTWARE.
+ * IN NO EVENT SHALL COMPANIES HOUSE BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
+ * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
+ * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF THE
+ * POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 /*
@@ -56,6 +54,7 @@
 static tmsize_t
 _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
+	GoTiffReadProc(fd, buf, size);
 	size_t size_io = (size_t) size;
 	if ((tmsize_t) size_io != size)
 	{
@@ -68,6 +67,7 @@ _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 static tmsize_t
 _tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
 {
+	GoTiffWriteProc(fd, buf, size);
 	size_t size_io = (size_t) size;
 	if ((tmsize_t) size_io != size)
 	{
@@ -80,6 +80,7 @@ _tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
 static uint64
 _tiffSeekProc(thandle_t fd, uint64 off, int whence)
 {
+	GoTiffSeekProc(fd, off, whence);
 	off_t off_io = (off_t) off;
 	if ((uint64) off_io != off)
 	{
@@ -92,6 +93,7 @@ _tiffSeekProc(thandle_t fd, uint64 off, int whence)
 static int
 _tiffCloseProc(thandle_t fd)
 {
+	GoTiffCloseProc(fd);
 	return(close((int)fd));
 }
 
@@ -111,6 +113,7 @@ _tiffSizeProc(thandle_t fd)
 static int
 _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 {
+	GoTiffMapProc(fd, pbase, psize);
 	uint64 size64 = _tiffSizeProc(fd);
 	tmsize_t sizem = (tmsize_t)size64;
 	if ((uint64)sizem==size64) {
@@ -127,6 +130,7 @@ _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 static void
 _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
 {
+	GoTiffUnmapProc(fd, base, size);
 	(void) fd;
 	(void) munmap(base, (off_t) size);
 }
@@ -134,6 +138,7 @@ _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
 static int
 _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 {
+	GoTiffMapProc(fd, pbase, psize);
 	(void) fd; (void) pbase; (void) psize;
 	return (0);
 }
@@ -141,6 +146,7 @@ _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 static void
 _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
 {
+	GoTiffUnmapProc(fd, base, size);
 	(void) fd; (void) base; (void) size;
 }
 #endif /* !HAVE_MMAP */

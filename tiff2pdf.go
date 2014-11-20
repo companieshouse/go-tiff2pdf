@@ -62,15 +62,16 @@ func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	GoTiffSeekProc(int(output.tif_fd), 0, 0)
 
 	t2p := C.t2p_init()
 	if t2p == nil {
-		panic("FRIK!")
+		panic("Error: t2p_init!")
 	}
 	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		panic("FREEK!")
+		panic("t2p_error " + "")
 	}
 
 	return fdMap[int(output.tif_fd)].buffer, nil

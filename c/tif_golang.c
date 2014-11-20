@@ -69,7 +69,7 @@ _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 static tmsize_t
 _tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
 {
-	GoTiffWriteProc(fd, buf, size);
+	return GoTiffWriteProc(fd, buf, size);
     /*
 	size_t size_io = (size_t) size;
 	if ((tmsize_t) size_io != size)
@@ -85,13 +85,16 @@ static uint64
 _tiffSeekProc(thandle_t fd, uint64 off, int whence)
 {
 	return (uint64)GoTiffSeekProc(fd, off, whence);
+	/*
 	off_t off_io = (off_t) off;
 	if ((uint64) off_io != off)
 	{
 		errno=EINVAL;
-		return (uint64) -1; /* this is really gross */
+		return (uint64) -1; */ /* this is really gross */
+	/*
 	}
 	return((uint64)lseek((int)fd,off_io,whence));
+	*/
 }
 
 static int

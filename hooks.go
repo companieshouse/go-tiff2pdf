@@ -41,41 +41,54 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffWriteProc
 func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
-	log.Printf("GoTiffWriteProc off[%d] size[%d]!\n", fdMap[fd].offset, size)
 	hdr := reflect.SliceHeader{
 		Data: uintptr(ptr),
-		Len:  2*int(unsafe.Sizeof(ptr)),
-		Cap:  2*int(unsafe.Sizeof(ptr)),
+		Len:  size,
+		Cap:  size,
+		// Len:  2*int(unsafe.Sizeof(ptr)),
+		// Cap:  2*int(unsafe.Sizeof(ptr)),
 	}
 	goSlice := *(*[]byte)(unsafe.Pointer(&hdr))
+	log.Printf("[%d] GoTiffWriteProc off[%d] capBuff[%d] size[%d] slcLen[%d]!\n", fd, fdMap[fd].offset, cap(fdMap[fd].buffer), size, len(goSlice))
 
-	if fdMap[fd].offset+size >= int64(cap(fdMap[fd].buffer)) {
-		fdMap[fd].buffer = append(fdMap[fd].buffer, goSlice[0:]...)
+	/*
+	size64 := int64(size)
+	curCap := int64(cap(fdMap[fd].buffer))
+	needCap := fdMap[fd].offset+size64
+	if needCap > curCap {
+		log.Printf("[%d]                 off[%d] size[%d] slcLen[%d] need-cur[%d-%d]\n", fd, fdMap[fd].offset, size, len(goSlice), needCap, curCap)
+		fdMap[fd].buffer = append(fdMap[fd].buffer, goSlice[0:needCap-curCap-1]...)
+	}
+	*/
+	// fdMap[fd].buffer[fdMap[fd].offset:fdMap[fd].offset+size64] = goSlice[0:]
 	// fdMap[fd].offset += len(goSlice)
+	// fdMap[fd].offset += size64
+
+	// return size
 
 	for i := 0; i < size ; i++ {
-		log.Printf("GoTiffWriteProc off[%d] size[%d] i[%d] cap[%d] len[%d]!\n", fdMap[fd].offset, size, i, cap(fdMap[fd].buffer), len(fdMap[fd].buffer))
+		// log.Printf("[%d] GoTiffWriteProc off[%d] size[%d] i[%d] cap[%d] len[%d]!\n", fd, fdMap[fd].offset, size, i, cap(fdMap[fd].buffer), len(fdMap[fd].buffer))
 		if i >= len(goSlice) {
-			log.Printf(" OUT            off[%d] size[%d] i[%d]!\n", fdMap[fd].offset, size, i)
+			log.Printf("[%d]  DONE--------   off[%d] size[%d] i[%d]!\n", fd, fdMap[fd].offset, size, i)
 			return int(i)
 		}
-		log.Printf("                off[%d] size[%d] i[%d]!\n", fdMap[fd].offset, size, i)
-		// if fdMap[fd].offset >= int64(cap(fdMap[fd].buffer)) {
-			// log.Printf(" a              off[%d] size[%d] i[%d]!\n", fdMap[fd].offset, size, i)
+		if fdMap[fd].offset >= int64(len(fdMap[fd].buffer)) {
+			// log.Printf("[%d]  append         off[%d] size[%d] i[%d]!\n", fd, fdMap[fd].offset, size, i)
 			fdMap[fd].buffer = append(fdMap[fd].buffer, goSlice[i])
-		// } else {
-			// log.Printf(" b              off[%d] size[%d] i[%d]!\n", fdMap[fd].offset, size, i)
-			// fdMap[fd].buffer[fdMap[fd].offset] = goSlice[i]
-		// }
+		} else {
+			log.Printf("[%d]  copy           off[%d] size[%d] i[%d]!\n", fd, fdMap[fd].offset, size, i)
+			fdMap[fd].buffer[fdMap[fd].offset] = goSlice[i]
+		}
 		fdMap[fd].offset++
 	}
 
+	log.Printf("[%d]                 off[%d] capBuff[%d]\n", fd, fdMap[fd].offset, cap(fdMap[fd].buffer))
 	return size
 }
 
 //export GoTiffSeekProc
 func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
-	log.Println("GoTiffSeekProc!")
+	log.Printf("[%d] GoTiffSeekProc! off[%d] wh[%d]", fd, offset, whence)
 	newOffset := fdMap[fd].offset
 	switch whence {
 	case SEEK_SET:
@@ -85,8 +98,14 @@ func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
 	case SEEK_END:
 		newOffset = int64(len(fdMap[fd].buffer))-offset
 	}
-	if newOffset < 0 || newOffset > int64(len(fdMap[fd].buffer)) {
+	if newOffset < 0 {
+		log.Printf("[%d] GoTiffSeekProc off[%d] len[%d]", fd, newOffset, len(fdMap[fd].buffer))
 		return -1
+	} else if newOffset > int64(len(fdMap[fd].buffer)) {
+		log.Printf("[%d] GoTiffSeekProc off[%d] len[%d]", fd, newOffset, len(fdMap[fd].buffer))
+		for int64(len(fdMap[fd].buffer)) < newOffset {
+			fdMap[fd].buffer = append(fdMap[fd].buffer, '\000')
+		}
 	}
 	fdMap[fd].offset = newOffset
 	return fdMap[fd].offset
@@ -94,7 +113,7 @@ func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
 
 //export GoTiffCloseProc
 func GoTiffCloseProc(fd int) int {
-	log.Println("GoTiffCloseProc!")
+	log.Printf("[%d] GoTiffCloseProc!", fd)
 	return -1
 }
 
@@ -102,11 +121,11 @@ func GoTiffCloseProc(fd int) int {
 
 //export GoTiffMapProc
 func GoTiffMapProc(fd int, base unsafe.Pointer, size int64) int {
-	log.Println("GoTiffMapProc!")
+	log.Printf("[%d] GoTiffMapProc!", fd)
 	return 0
 }
 
 //export GoTiffUnmapProc
 func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
-	log.Println("GoTiffUnmapProc!")
+	log.Printf("[%d] GoTiffUnmapProc!", fd)
 }

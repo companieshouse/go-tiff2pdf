@@ -22,6 +22,7 @@ type fd struct {
 	fd int
 	buffer []byte
 	offset int64
+	outputdisable int
 }
 
 var fdCount = 10
@@ -66,12 +67,12 @@ func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
 
 	t2p := C.t2p_init()
 	if t2p == nil {
-		panic("Error: t2p_init!")
+		return nil, errors.New("Error: t2p_init!")
 	}
 	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		panic("t2p_error " + "")
+		return nil, errors.New("t2p_error " + "")
 	}
 
 	return fdMap[int(output.tif_fd)].buffer, nil

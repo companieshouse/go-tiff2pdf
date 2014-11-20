@@ -41,6 +41,10 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffWriteProc
 func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
+	if fdMap[fd].outputdisable == 1 {
+		return size
+	}
+
 	hdr := reflect.SliceHeader{
 		Data: uintptr(ptr),
 		Len:  size,
@@ -128,4 +132,14 @@ func GoTiffMapProc(fd int, base unsafe.Pointer, size int64) int {
 //export GoTiffUnmapProc
 func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
 	log.Printf("[%d] GoTiffUnmapProc!", fd)
+}
+
+//export GoOutputDisable
+func GoOutputDisable(fd int) {
+	fdMap[fd].outputdisable = 1
+}
+
+//export GoOutputEnable
+func GoOutputEnable(fd int) {
+	fdMap[fd].outputdisable = 0
 }

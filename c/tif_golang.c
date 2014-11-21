@@ -67,6 +67,12 @@ _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 }
 
 static tmsize_t
+_tiffNoop(thandle_t fd, void* buf, tmsize_t size)
+{
+	return -1;
+}
+
+static tmsize_t
 _tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
 {
 	return GoTiffWriteProc(fd, buf, size);
@@ -165,12 +171,17 @@ TIFF*
 TIFFFdOpen(int fd, const char* name, const char* mode)
 {
 	TIFF* tif;
+	TIFFReadWriteProc readproc = _tiffReadProc;
 
 	CallGo();
 
+	if (0 == strncmp(name+strlen(name)-4, ".pdf", 4)) {
+		readproc = _tiffNoop;
+	}
+
 	tif = TIFFClientOpen(name, mode,
 	    (thandle_t) fd,
-	    _tiffReadProc, _tiffWriteProc,
+	    readproc, _tiffWriteProc,
 	    _tiffSeekProc, _tiffCloseProc, _tiffSizeProc,
 	    _tiffMapProc, _tiffUnmapProc);
 	if (tif)

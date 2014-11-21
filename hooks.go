@@ -92,7 +92,10 @@ func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffSeekProc
 func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
-	log.Printf("[%d] GoTiffSeekProc! off[%d] wh[%d]", fd, offset, whence)
+	log.Printf("[%d] GoTiffSeekProc! off[%d] off[%d] wh[%d]", fd, fdMap[fd].offset, offset, whence)
+	if fdMap[fd].outputdisable == 1 {
+		return offset
+	}
 	newOffset := fdMap[fd].offset
 	switch whence {
 	case SEEK_SET:

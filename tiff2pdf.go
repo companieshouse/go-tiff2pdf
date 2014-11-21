@@ -11,8 +11,11 @@ package tiff2pdf
 #include "c/tif_golang.c"
 */
 import "C"
-import "errors"
-import "sync"
+import (
+	"errors"
+	"log"
+	"sync"
+)
 
 var (
 	ErrOpenFailed = errors.New("Opening TIFF failed")
@@ -53,13 +56,13 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 	return tif, nil
 }
 
-func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
-	input, err := createTiff(tiff, "test.tif", "rw")
+func ConvertTiffToPDF(tiff []byte, inputName string, outputName string) ([]byte, error) {
+	input, err := createTiff(tiff, inputName, "rw")
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := createTiff([]byte{}, "test.pdf", "wb")
+	output, err := createTiff([]byte{}, outputName, "w")
 	if err != nil {
 		return nil, err
 	}
@@ -72,8 +75,11 @@ func ConvertTiffToPDF(tiff []byte) ([]byte, error) {
 	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		return nil, errors.New("t2p_error " + "")
+		C.t2p_free(t2p)
+		return nil, errors.New("t2p_error")
 	}
+
+	C.t2p_free(t2p)
 
 	return fdMap[int(output.tif_fd)].buffer, nil
 }

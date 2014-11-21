@@ -342,7 +342,7 @@ t2p_disable(TIFF *tif)
 {
 	T2P *t2p = (T2P*) TIFFClientdata(tif);
 	fprintf(stderr, "GAE disable [%d]\n", (int)t2p);
-	return GoOutputDisable(t2p);
+	GoOutputDisable(t2p);
 }
 
 static void
@@ -350,7 +350,7 @@ t2p_enable(TIFF *tif)
 {
 	T2P *t2p = (T2P*) TIFFClientdata(tif);
 	fprintf(stderr, "GAE enable [%d]\n", (int)t2p);
-	return GoOutputEnable(t2p);
+	GoOutputEnable(t2p);
 }
 
 /*

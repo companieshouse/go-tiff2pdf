@@ -21,4 +21,4 @@ configdeps: getdeps
 deps: configdeps
 	cd $(LIBTIFF_REL) && make
 
-.PHONY: all lib service deps
+.PHONY: all lib service test deps configdeps getdeps cleandeps

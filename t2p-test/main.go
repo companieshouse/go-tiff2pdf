@@ -1,11 +1,10 @@
 package main
 
 import (
-	//"fmt"
 	"io/ioutil"
 	"log"
 
-	tiff2pdf "github.com/companieshouse/go-tiff2pdf"
+	"github.com/companieshouse/go-tiff2pdf/tiff2pdf"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package tiff2pdf
 
 /*
-#cgo CFLAGS: -D_THREAD_SAFE -pthread -I../../vadz/libtiff/libtiff
+#cgo CFLAGS: -D_THREAD_SAFE -pthread -I../../../vadz/libtiff/libtiff
 #cgo LDFLAGS: -lm
 #include <stdio.h>
 #include <stdlib.h>

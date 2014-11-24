@@ -11,7 +11,10 @@ package tiff2pdf
 #include "c/tif_golang.c"
 */
 import "C"
-import "errors"
+import (
+	"errors"
+	"unsafe"
+)
 
 //Config represents the command line tiff2pdf configuration
 type Config struct {
@@ -42,7 +45,13 @@ func DefaultConfig() *Config {
 
 func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 	newFd := NewFd(tiff)
-	tif := C.TIFFFdOpen(C.int(newFd.fd), C.CString(name), C.CString(mode))
+
+	cName := C.CString(name)
+	cMode := C.CString(mode)
+	tif := C.TIFFFdOpen(C.int(newFd.fd), cName, cMode)
+	C.free(unsafe.Pointer(cName))
+	C.free(unsafe.Pointer(cMode))
+
 	if tif == nil {
 		return nil, ErrOpenFailed
 	}
@@ -50,11 +59,13 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 }
 
 func configureT2p(t2p *C.T2P, config *Config) {
-	if r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, C.CString(config.PageSize)); r != 0 {
+	cPageSize := C.CString(config.PageSize)
+	if r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, pageSize); r != 0 {
 		t2p.pdf_overridepagesize = 1
 	} else {
 		// TODO warning?
 	}
+	C.free(unsafe.Pointer(cPageSize))
 
 	if config.FullPage {
 		t2p.pdf_image_fillpage = 1

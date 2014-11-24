@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/companieshouse/go-tiff2pdf/tiff2pdf"
 	"github.com/gorilla/pat"
@@ -41,7 +42,17 @@ func failConversion(w http.ResponseWriter, err error) {
 }
 
 func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
-	b, err := ioutil.ReadAll(req.Body)
+	start := time.Now()
+	var b, o []byte
+	var err error
+
+	defer func() {
+		end := time.Now()
+		diff := end.Sub(start)
+		log.Printf("Converted %d bytes TIFF to %d bytes PDF in %v", len(b), len(o), diff)
+	}()
+
+	b, err = ioutil.ReadAll(req.Body)
 	if err != nil {
 		failConversion(w, err)
 		return
@@ -81,7 +92,7 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		c.Title = hdr[0]
 	}
 
-	o, err := tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf")
+	o, err = tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf")
 	if err != nil {
 		failConversion(w, err)
 		return

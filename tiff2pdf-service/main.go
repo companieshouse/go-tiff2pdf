@@ -11,12 +11,14 @@ import (
 
 func main() {
 	setupRouting()
-	err := http.ListenAndServe(":9090", nil)
+
+	bind := ":9090"
+	log.Printf("Listening on %s", bind)
+
+	err := http.ListenAndServe(bind, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	<-make(chan int)
 }
 
 func setupRouting() {

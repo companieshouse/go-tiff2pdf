@@ -20,13 +20,13 @@ func main() {
 		}
 		fileCount++
 		inputName := file.Name()
-		b, err := ioutil.ReadFile("tifs/"+inputName)
+		b, err := ioutil.ReadFile("tifs/" + inputName)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		outputName := inputName+".pdf"
-		bOut, err := tiff2pdf.ConvertTiffToPDF(b, inputName, outputName)
+		outputName := inputName + ".pdf"
+		bOut, err := tiff2pdf.ConvertTiffToPDF(b, tiff2pdf.DefaultConfig(), inputName, outputName)
 		if err != nil {
 			errorCount++
 			log.Printf("ERROR in %s: %s\n", inputName, err)

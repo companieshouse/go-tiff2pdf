@@ -43,7 +43,7 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 	req.Body.Close()
 
 	c := tiff2pdf.DefaultConfig()
-	o, err := tiff2pdf.ConvertTiff2PDF(b, c, "input.tif", "output.pdf")
+	o, err := tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf")
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))

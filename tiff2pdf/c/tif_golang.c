@@ -55,15 +55,6 @@ static tmsize_t
 _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
 	return (tmsize_t)GoTiffReadProc(fd, buf, size);
-	/*
-	size_t size_io = (size_t) size;
-	if ((tmsize_t) size_io != size)
-	{
-		errno=EINVAL;
-		return (tmsize_t) -1;
-	}
-	return ((tmsize_t) read((int) fd, buf, size_io));
-	*/
 }
 
 static tmsize_t
@@ -76,48 +67,24 @@ static tmsize_t
 _tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
 {
 	return GoTiffWriteProc(fd, buf, size);
-    /*
-	size_t size_io = (size_t) size;
-	if ((tmsize_t) size_io != size)
-	{
-		errno=EINVAL;
-		return (tmsize_t) -1;
-	}
-	return ((tmsize_t) write((int) fd, buf, size_io));
-    */
 }
 
 static uint64
 _tiffSeekProc(thandle_t fd, uint64 off, int whence)
 {
 	return (uint64)GoTiffSeekProc(fd, off, whence);
-	/*
-	off_t off_io = (off_t) off;
-	if ((uint64) off_io != off)
-	{
-		errno=EINVAL;
-		return (uint64) -1; */ /* this is really gross */
-	/*
-	}
-	return((uint64)lseek((int)fd,off_io,whence));
-	*/
 }
 
 static int
 _tiffCloseProc(thandle_t fd)
 {
-	GoTiffCloseProc(fd);
-	return(close((int)fd));
+	return GoTiffCloseProc(fd);
 }
 
 static uint64
 _tiffSizeProc(thandle_t fd)
 {
-	struct stat sb;
-	if (fstat((int)fd,&sb)<0)
-		return(0);
-	else
-		return((uint64)sb.st_size);
+	return GoTiffSizeProc(fd);
 }
 
 #ifdef HAVE_MMAP
@@ -126,32 +93,19 @@ _tiffSizeProc(thandle_t fd)
 static int
 _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 {
-	GoTiffMapProc(fd, pbase, psize);
-	uint64 size64 = _tiffSizeProc(fd);
-	tmsize_t sizem = (tmsize_t)size64;
-	if ((uint64)sizem==size64) {
-		*pbase = (void*)
-		    mmap(0, (size_t)sizem, PROT_READ, MAP_SHARED, (int) fd, 0);
-		if (*pbase != (void*) -1) {
-			*psize = (tmsize_t)sizem;
-			return (1);
-		}
-	}
-	return (0);
+	return GoTiffMapProc(fd, pbase, psize);
 }
 
 static void
 _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
 {
 	GoTiffUnmapProc(fd, base, size);
-	(void) fd;
-	(void) munmap(base, (off_t) size);
 }
 #else /* !HAVE_MMAP */
 static int
 _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 {
-	GoTiffMapProc(fd, pbase, psize);
+	//GoTiffMapProc(fd, pbase, psize);
 	(void) fd; (void) pbase; (void) psize;
 	return (0);
 }
@@ -159,7 +113,7 @@ _tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
 static void
 _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
 {
-	GoTiffUnmapProc(fd, base, size);
+	//GoTiffUnmapProc(fd, base, size);
 	(void) fd; (void) base; (void) size;
 }
 #endif /* !HAVE_MMAP */
@@ -172,8 +126,6 @@ TIFFFdOpen(int fd, const char* name, const char* mode)
 {
 	TIFF* tif;
 	TIFFReadWriteProc readproc = _tiffReadProc;
-
-	CallGo();
 
 	if (0 == strncmp(name+strlen(name)-4, ".pdf", 4)) {
 		readproc = _tiffNoop;
@@ -188,95 +140,6 @@ TIFFFdOpen(int fd, const char* name, const char* mode)
 		tif->tif_fd = fd;
 	return (tif);
 }
-
-/*
- * Open a TIFF file for read/writing.
- */
-TIFF*
-TIFFOpen(const char* name, const char* mode)
-{
-	static const char module[] = "TIFFOpen";
-	int m, fd;
-	TIFF* tif;
-
-	m = _TIFFgetMode(mode, module);
-	if (m == -1)
-		return ((TIFF*)0);
-
-/* for cygwin and mingw */
-#ifdef O_BINARY
-	m |= O_BINARY;
-#endif
-
-	fd = open(name, m, 0666);
-	if (fd < 0) {
-		if (errno > 0 && strerror(errno) != NULL ) {
-			TIFFErrorExt(0, module, "%s: %s", name, strerror(errno) );
-		} else {
-			TIFFErrorExt(0, module, "%s: Cannot open", name);
-		}
-		return ((TIFF *)0);
-	}
-
-	tif = TIFFFdOpen((int)fd, name, mode);
-	if(!tif)
-		close(fd);
-	return tif;
-}
-
-#ifdef __WIN32__
-#include <windows.h>
-/*
- * Open a TIFF file with a Unicode filename, for read/writing.
- */
-TIFF*
-TIFFOpenW(const wchar_t* name, const char* mode)
-{
-	static const char module[] = "TIFFOpenW";
-	int m, fd;
-	int mbsize;
-	char *mbname;
-	TIFF* tif;
-
-	m = _TIFFgetMode(mode, module);
-	if (m == -1)
-		return ((TIFF*)0);
-
-/* for cygwin and mingw */
-#ifdef O_BINARY
-	m |= O_BINARY;
-#endif
-
-	fd = _wopen(name, m, 0666);
-	if (fd < 0) {
-		TIFFErrorExt(0, module, "%s: Cannot open", name);
-		return ((TIFF *)0);
-	}
-
-	mbname = NULL;
-	mbsize = WideCharToMultiByte(CP_ACP, 0, name, -1, NULL, 0, NULL, NULL);
-	if (mbsize > 0) {
-		mbname = _TIFFmalloc(mbsize);
-		if (!mbname) {
-			TIFFErrorExt(0, module,
-			"Can't allocate space for filename conversion buffer");
-			return ((TIFF*)0);
-		}
-
-		WideCharToMultiByte(CP_ACP, 0, name, -1, mbname, mbsize,
-				    NULL, NULL);
-	}
-
-	tif = TIFFFdOpen((int)fd, (mbname != NULL) ? mbname : "<unknown>",
-			 mode);
-
-	_TIFFfree(mbname);
-
-	if(!tif)
-		close(fd);
-	return tif;
-}
-#endif
 
 void*
 _TIFFmalloc(tmsize_t s)

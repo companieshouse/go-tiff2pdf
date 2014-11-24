@@ -60,7 +60,7 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 
 func configureT2p(t2p *C.T2P, config *Config) {
 	cPageSize := C.CString(config.PageSize)
-	if r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, pageSize); r != 0 {
+	if r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, cPageSize); r != 0 {
 		t2p.pdf_overridepagesize = 1
 	} else {
 		// TODO warning?
@@ -103,6 +103,7 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	GoTiffSeekProc(int(output.tif_fd), 0, 0)
 
 	t2p := C.t2p_init()
+	defer C.t2p_free(t2p)
 	if t2p == nil {
 		return nil, errors.New("Error: t2p_init!")
 	}
@@ -112,11 +113,8 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		C.t2p_free(t2p)
 		return nil, errors.New("t2p_error")
 	}
-
-	C.t2p_free(t2p)
 
 	return fdMap[int(output.tif_fd)].buffer, nil
 }

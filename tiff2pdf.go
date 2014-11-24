@@ -51,6 +51,12 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 
 func configureT2p(t2p *C.T2P, config *Config) {
 	// TODO page size
+	r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, C.CString(config.PageSize))
+	if r != 0 {
+		t2p.pdf_overridepagesize = 1
+	} else {
+		// TODO warning?
+	}
 
 	if config.FullPage {
 		t2p.pdf_image_fillpage = 1

@@ -7,6 +7,8 @@ lib:
 
 service:
 	go build -work -o build/go-tiff2pdf ./tiff2pdf-service
+run:
+	./build/go-tiff2pdf
 
 test:
 	go build -work -o build/t2p-test ./t2p-test
@@ -21,4 +23,4 @@ configdeps: getdeps
 deps: configdeps
 	cd $(LIBTIFF_REL) && make
 
-.PHONY: all lib service test deps configdeps getdeps cleandeps
+.PHONY: all lib service run test deps configdeps getdeps cleandeps

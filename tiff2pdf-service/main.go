@@ -52,8 +52,7 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		log.Printf("Converted %d bytes TIFF to %d bytes PDF in %v", len(b), len(o), diff)
 	}()
 
-	b, err = ioutil.ReadAll(req.Body)
-	if err != nil {
+	if b, err = ioutil.ReadAll(req.Body); err != nil {
 		failConversion(w, err)
 		return
 	}
@@ -92,12 +91,12 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		c.Title = hdr[0]
 	}
 
-	o, err = tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf")
-	if err != nil {
+	if o, err = tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf"); err != nil {
 		failConversion(w, err)
 		return
 	}
 
 	w.WriteHeader(200)
+	w.Header().Set("Content-Type", "application/pdf")
 	w.Write(o)
 }

@@ -37,3 +37,6 @@
 #include "tif_write.c"
 #include "tif_zip.c"
 //#include "tif_unix.c"
+
+extern void t2p_enable(TIFF *);
+extern void t2p_disable(TIFF *);

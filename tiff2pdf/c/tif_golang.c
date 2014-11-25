@@ -201,6 +201,20 @@ unixErrorHandler(const char* module, const char* fmt, va_list ap)
 }
 TIFFErrorHandler _TIFFerrorHandler = unixErrorHandler;
 
+void
+t2p_disable(TIFF *tif)
+{
+	T2P *t2p = (T2P*) TIFFClientdata(tif);
+	GoOutputDisable(t2p);
+}
+
+void
+t2p_enable(TIFF *tif)
+{
+	T2P *t2p = (T2P*) TIFFClientdata(tif);
+	GoOutputEnable(t2p);
+}
+
 /* vim: set ts=8 sts=8 sw=8 noet: */
 
 /*

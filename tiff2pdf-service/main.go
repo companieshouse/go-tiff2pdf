@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -15,6 +16,9 @@ func main() {
 	setupRouting()
 
 	bind := ":9090"
+	if os.Getenv("TIFF2PDF_SERVICE_LISTEN") != "" {
+		bind = os.Getenv("TIFF2PDF_SERVICE_LISTEN")
+	}
 	log.Printf("Listening on %s", bind)
 
 	err := http.ListenAndServe(bind, nil)

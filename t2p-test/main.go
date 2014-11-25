@@ -21,7 +21,7 @@ func main() {
 		inputName := file.Name()
 		b, err := ioutil.ReadFile("tifs/" + inputName)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("%s, reading %s after %d files with %d errors", err, inputName, fileCount, errorCount)
 		}
 
 		outputName := inputName + ".pdf"
@@ -31,9 +31,8 @@ func main() {
 			log.Printf("ERROR in %s: %s\n", inputName, err)
 		}
 
-		// fmt.Printf("%s", bOut)
 		if err = ioutil.WriteFile("pdfs/"+outputName, bOut, 0644); err != nil {
-			log.Fatal(err)
+			log.Fatalf("%s, writing %s after %d files with %d errors", err, outputName, fileCount, errorCount)
 		}
 	}
 	log.Printf("Done %d files with %d errors\n", fileCount, errorCount)

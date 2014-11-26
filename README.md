@@ -39,7 +39,7 @@ PDF-Title: pdf title
 ```
 HTTP/1.1 200 Ok
 Content-Type: application/pdf
-Content-Lenght: [n]
+Content-Length: [n]
 
 [PDF bytes]
 ```

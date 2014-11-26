@@ -28,7 +28,7 @@ func main() {
 		bOut, err := tiff2pdf.ConvertTiffToPDF(b, tiff2pdf.DefaultConfig(), inputName, outputName)
 		if err != nil {
 			errorCount++
-			log.Printf("ERROR in %s: %s\n", inputName, err)
+			log.Printf("ERROR in %s (%d files, %d errors): %s\n", inputName, fileCount, errorCount, err)
 		}
 
 		if err = ioutil.WriteFile("pdfs/"+outputName, bOut, 0644); err != nil {

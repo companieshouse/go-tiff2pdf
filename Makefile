@@ -9,12 +9,12 @@ lib:
 $(TIFF2PDF_C): $(LIBTIFF_REL)/tools/tiff2pdf.c
 	sed -e 's/^t2p_enable(/__not_&/' -e 's/^t2p_disable(/__not_&/' -e '/^int main(/,/^}/d' < $< > $@.tmp
 	mv $@.tmp $@
-build: $(TIFF2PDF_C)
+build: deps $(TIFF2PDF_C)
 	go build -work -o build/go-tiff2pdf ./tiff2pdf-service
 run: build
 	./build/go-tiff2pdf
 
-test:
+test: deps $(TIFF2PDF_C)
 	go build -work -o build/t2p-test ./t2p-test
 	cd t2p-test && ../build/t2p-test
 

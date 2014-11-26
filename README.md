@@ -1,4 +1,5 @@
-#go-tiff2pdf
+go-tiff2pdf [![GoDoc](https://godoc.org/github.com/companieshouse/go-tiff2pdf?status.svg)](https://godoc.org/github.com/companieshouse/go-tiff2pdf)
+===========
 
 tiff2pdf (from libtiff) as a service.
 
@@ -13,3 +14,32 @@ This has been tested on:
 
     - Mac OS X 10.10 with Go 1.3.1
     - Ubuntu 14.04 with Go 1.2.1
+
+### TIFF to PDF request example
+
+To convert a TIFF to PDF, `POST` the TIFF bytes as the request body to the `/convert` endpoint.
+
+You can set PDF metadata using the headers `PDF-Subject`, `PDF-Author`, `PDF-Creator` and `PDF-Title`.
+
+#### Example request
+
+```
+POST /convert HTTP/1.1
+Content-Type: image/tiff
+PDF-Subject: pdf subject line
+PDF-Author: pdf author
+PDF-Creator: pdf creator
+PDF-Title: pdf title
+
+[TIFF bytes]
+```
+
+#### Example response
+
+```
+HTTP/1.1 200 Ok
+Content-Type: application/pdf
+Content-Lenght: [n]
+
+[PDF bytes]
+```

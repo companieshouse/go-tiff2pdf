@@ -180,24 +180,27 @@ _TIFFmemcmp(const void* p1, const void* p2, tmsize_t c)
 	return (memcmp(p1, p2, (size_t) c));
 }
 
+/* this is a global warning/error, not thread-compatible */
 static void
 unixWarningHandler(const char* module, const char* fmt, va_list ap)
 {
+	char warning[4096];
 	if (module != NULL)
-		fprintf(stderr, "%s: ", module);
-	fprintf(stderr, "Warning, ");
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, ".\n");
+		sprintf(warning, "%s: ", module);
+	vsprintf(warning+strlen(warning), fmt, ap);
+	GoSetWarning(warning);
 }
 TIFFErrorHandler _TIFFwarningHandler = unixWarningHandler;
 
+/* this is a global warning/error, not thread-compatible */
 static void
 unixErrorHandler(const char* module, const char* fmt, va_list ap)
 {
+	char error[4096];
 	if (module != NULL)
-		fprintf(stderr, "%s: ", module);
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, ".\n");
+		sprintf(error, "%s: ", module);
+	vsprintf(error+strlen(error), fmt, ap);
+	GoSetError(error);
 }
 TIFFErrorHandler _TIFFerrorHandler = unixErrorHandler;
 

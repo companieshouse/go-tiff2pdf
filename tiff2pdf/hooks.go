@@ -1,7 +1,11 @@
 package tiff2pdf
 
+/*
+#include <stdarg.h>
+*/
 import "C"
 import (
+	"log"
 	"reflect"
 	"unsafe"
 )
@@ -114,4 +118,26 @@ func GoTiffMapProc(fd int, base unsafe.Pointer, size int64) int {
 
 //export GoTiffUnmapProc
 func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
+}
+
+//export GoTiffWarningExt
+func GoTiffWarningExt(fd int, err *C.char) {
+	s := C.GoString(err)
+	if _, ok := fdMap[fd]; !ok {
+		// TODO don't think we care about warnings with fd 0
+		log.Printf("[%d] WARNING: %s", fd, s)
+		return
+	}
+	fdMap[fd].warnings = append(fdMap[fd].warnings, s)
+}
+
+//export GoTiffErrorExt
+func GoTiffErrorExt(fd int, err *C.char) {
+	s := C.GoString(err)
+	if _, ok := fdMap[fd]; !ok {
+		// TODO don't think we care about errors with fd 0
+		log.Printf("[%d] ERROR: %s", fd, s)
+		return
+	}
+	fdMap[fd].errors = append(fdMap[fd].errors, s)
 }

@@ -14,6 +14,8 @@ type fd struct {
 	buffer        []byte
 	offset        int64
 	outputdisable int
+	warnings      []string
+	errors        []string
 }
 
 var fdCount = 10
@@ -29,6 +31,8 @@ func NewFd(buffer []byte) *fd {
 	fdo := &fd{
 		fd:     thisFd,
 		buffer: buffer,
+		warnings: make([]string,0),
+		errors: make([]string,0),
 	}
 	fdMap[thisFd] = fdo
 

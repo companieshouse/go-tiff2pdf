@@ -201,6 +201,50 @@ unixErrorHandler(const char* module, const char* fmt, va_list ap)
 }
 TIFFErrorHandler _TIFFerrorHandler = unixErrorHandler;
 
+void
+TIFFWarning(const char* module, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	char s[4096];
+	vsprintf(s, fmt, ap);
+	GoTiffErrorExt(0, s);
+	va_end(ap);
+}
+
+void
+TIFFWarningExt(thandle_t fd, const char* module, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	char s[4096];
+	vsprintf(s, fmt, ap);
+	GoTiffErrorExt(fd, s);
+	va_end(ap);
+}
+
+void
+TIFFError(const char* module, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	char s[4096];
+	vsprintf(s, fmt, ap);
+	GoTiffErrorExt(0, s);
+	va_end(ap);
+}
+
+void
+TIFFErrorExt(thandle_t fd, const char* module, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	char s[4096];
+	vsprintf(s, fmt, ap);
+	GoTiffErrorExt(fd, s);
+	va_end(ap);
+}
+
 /* vim: set ts=8 sts=8 sw=8 noet: */
 
 /*

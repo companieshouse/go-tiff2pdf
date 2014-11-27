@@ -57,16 +57,23 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		xReqId = "[" + xReqId + "] "
 	}
 
+	success := false
+
 	defer func() {
 		end := time.Now()
 		diff := end.Sub(start)
-		log.Printf("%sConverted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
+		if success {
+			log.Printf("%sConverted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
+		} else {
+			log.Printf("%sFailed conversion of %d bytes TIFF to PDF in %v", xReqId, len(b), diff)
+		}
 	}()
 
 	if b, err = ioutil.ReadAll(req.Body); err != nil {
 		failConversion(xReqId, w, err)
 		return
 	}
+	log.Printf("%sGot %d input TIFF bytes", xReqId, len(b))
 
 	req.Body.Close()
 
@@ -106,6 +113,8 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		failConversion(xReqId, w, err)
 		return
 	}
+
+	success = true
 
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/pdf")

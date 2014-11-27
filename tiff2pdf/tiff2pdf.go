@@ -34,13 +34,23 @@ type Config struct {
 	Title string
 }
 
+type Status struct {
+	ErrCount int
+	WarnCount int
+	Err string
+	Warn string
+}
+
 // ConvertTiffToPDFOutput is returned by ConvertTiffToPDF
 type ConvertTiffToPDFOutput struct {
 	// PageCount is the number of pages converted from TIFF to PDF
 	PageCount uint
 	// PDF is the output from tiff2pdf
 	PDF []byte
+	*Status
 }
+
+var T2PStatus *Status
 
 // DefaultConfig creates the default tiff2pdf configuration
 func DefaultConfig() *Config {
@@ -97,36 +107,51 @@ func stringTo512Cchar(s string) [512]C.char {
 	return cArr
 }
 
+func t2pStart() {
+	T2PStatus = &Status{}
+}
+
 // ConvertTiffToPDF converts an input TIFF byte array to an output PDF byte array
 func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName string) (*ConvertTiffToPDFOutput, error) {
+	t2pStart()
+
 	input, err := createTiff(tiff, inputName, "rw")
 	if err != nil {
 		return nil, err
 	}
+	input_fd := int(input.tif_fd)
+	defer func() {
+		delete(fdMap, input_fd)
+	}()
 
 	output, err := createTiff([]byte{}, outputName, "w")
 	if err != nil {
 		return nil, err
 	}
-	GoTiffSeekProc(int(output.tif_fd), 0, 0)
+	output_fd := int(output.tif_fd)
+	defer func() {
+		delete(fdMap, output_fd)
+	}()
+
+	GoTiffSeekProc(output_fd, 0, 0)
 
 	t2p := C.t2p_init()
 	defer C.t2p_free(t2p)
 	if t2p == nil {
-		return nil, errors.New("Error: t2p_init!")
+		return nil, errors.New("Error: t2p_init: " + T2PStatus.Err)
 	}
 
 	configureT2p(t2p, config)
 
-	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		return nil, errors.New("t2p_error")
+		return nil, errors.New(T2PStatus.Err)
 	}
 
 	out := &ConvertTiffToPDFOutput{
 		uint(t2p.pdf_pages),
-		fdMap[int(output.tif_fd)].buffer,
+		fdMap[output_fd].buffer,
+		T2PStatus,
 	}
 
 	return out, nil

@@ -115,3 +115,15 @@ func GoTiffMapProc(fd int, base unsafe.Pointer, size int64) int {
 //export GoTiffUnmapProc
 func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
 }
+
+//export GoSetError
+func GoSetError(err *C.char) {
+	T2PStatus.ErrCount++
+	T2PStatus.Err = C.GoString(err)
+}
+
+//export GoSetWarning
+func GoSetWarning(wrn *C.char) {
+	T2PStatus.WarnCount++
+	T2PStatus.Warn = C.GoString(wrn)
+}

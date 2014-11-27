@@ -28,11 +28,12 @@ func main() {
 		o, err := tiff2pdf.ConvertTiffToPDF(b, tiff2pdf.DefaultConfig(), inputName, outputName)
 		if err != nil {
 			errorCount++
-			log.Printf("ERROR in %s: %s\n", inputName, err)
-		}
+			log.Printf("ERROR in %s (%d files, %d errors): %s\n", inputName, fileCount, errorCount, err)
 
-		if err = ioutil.WriteFile("pdfs/"+outputName, o.PDF, 0644); err != nil {
+		} else if err = ioutil.WriteFile("pdfs/"+outputName, o.PDF, 0644); err != nil {
 			log.Fatalf("%s, writing %s after %d files with %d errors", err, outputName, fileCount, errorCount)
+		} else if o.Status.WarnCount > 0 {
+			log.Printf("%s [file %d] had %d warnings, last: %s\n", inputName, fileCount, o.Status.WarnCount, o.Status.Warn)
 		}
 	}
 	log.Printf("Done %d files with %d errors\n", fileCount, errorCount)

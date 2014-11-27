@@ -107,25 +107,33 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	if err != nil {
 		return nil, err
 	}
+	input_fd := int(input.tif_fd)
+	defer func() {
+		delete(fdMap, input_fd)
+	}()
 
 	output, err := createTiff([]byte{}, outputName, "w")
 	if err != nil {
 		return nil, err
 	}
-	GoTiffSeekProc(int(output.tif_fd), 0, 0)
+	output_fd := int(output.tif_fd)
+	defer func() {
+		delete(fdMap, output_fd)
+	}()
+
+	GoTiffSeekProc(output_fd, 0, 0)
 
 	t2p := C.t2p_init()
 	defer C.t2p_free(t2p)
 	if t2p == nil {
-		return nil, errors.New("Error: t2p_init!")
+		return nil, errors.New("Error: t2p_init") // FIXME capture FD0
 	}
 
 	configureT2p(t2p, config)
 
-	// t2p.outputfile = C.FILE(output.tif_fd)
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		return nil, errors.New("t2p_error")
+		return nil, errors.New("t2p_error") // FIXME capture FD0
 	}
 
 	out := &ConvertTiffToPDFOutput{

@@ -180,27 +180,6 @@ _TIFFmemcmp(const void* p1, const void* p2, tmsize_t c)
 	return (memcmp(p1, p2, (size_t) c));
 }
 
-static void
-unixWarningHandler(const char* module, const char* fmt, va_list ap)
-{
-	if (module != NULL)
-		fprintf(stderr, "%s: ", module);
-	fprintf(stderr, "Warning, ");
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, ".\n");
-}
-TIFFErrorHandler _TIFFwarningHandler = unixWarningHandler;
-
-static void
-unixErrorHandler(const char* module, const char* fmt, va_list ap)
-{
-	if (module != NULL)
-		fprintf(stderr, "%s: ", module);
-	vfprintf(stderr, fmt, ap);
-	fprintf(stderr, ".\n");
-}
-TIFFErrorHandler _TIFFerrorHandler = unixErrorHandler;
-
 void
 TIFFWarning(const char* module, const char* fmt, ...)
 {
@@ -243,6 +222,20 @@ TIFFErrorExt(thandle_t fd, const char* module, const char* fmt, ...)
 	vsprintf(s, fmt, ap);
 	GoTiffErrorExt(fd, s);
 	va_end(ap);
+}
+
+void
+t2p_disable(TIFF *tif)
+{
+	T2P *t2p = (T2P*) TIFFClientdata(tif);
+	GoOutputDisable(t2p);
+}
+
+void
+t2p_enable(TIFF *tif)
+{
+	T2P *t2p = (T2P*) TIFFClientdata(tif);
+	GoOutputEnable(t2p);
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */

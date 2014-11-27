@@ -116,8 +116,8 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 
 	success = true
 
-	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("PDF-Pages", strconv.Itoa(int(o.PageCount)))
+	w.WriteHeader(200)
 	w.Write(o.PDF)
 }

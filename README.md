@@ -11,7 +11,7 @@ tiff2pdf (from libtiff) as a service.
 - Run `./build/go-tiff2pdf` or `make run` to start the service
 
 This has been tested on:
-* Mac OS X 10.10 with Go 1.3.1
+* Mac OS X 10.10 with Go 1.3.1 and Go 1.3.3
 * Ubuntu 14.04 with Go 1.2.1
 
 ### TIFF to PDF request example

@@ -11,22 +11,20 @@ tiff2pdf (from libtiff) as a service.
 - Run `./build/go-tiff2pdf` or `make run` to start the service
 
 This has been tested on:
-
-    - Mac OS X 10.10 with Go 1.3.1
-    - Ubuntu 14.04 with Go 1.2.1
+* Mac OS X 10.10 with Go 1.3.1
+* Ubuntu 14.04 with Go 1.2.1
 
 ### TIFF to PDF request example
 
 To convert a TIFF to PDF, `POST` the TIFF bytes as the request body to the `/convert` endpoint.
 
 You can set PDF metadata using the headers:
-
-    - `PDF-Subject`
-    - `PDF-Author`
-    - `PDF-Creator`
-    - `PDF-Title`
-    - `PDF-PageSize`
-    - `PDF-FullPage`
+* `PDF-Subject`
+* `PDF-Author`
+* `PDF-Creator`
+* `PDF-Title`
+* `PDF-PageSize`
+* `PDF-FullPage`
 
 Set a `X-Request-ID` header to add a unique ID to request log output.
 

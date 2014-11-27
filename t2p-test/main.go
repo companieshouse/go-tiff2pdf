@@ -25,13 +25,13 @@ func main() {
 		}
 
 		outputName := inputName + ".pdf"
-		bOut, err := tiff2pdf.ConvertTiffToPDF(b, tiff2pdf.DefaultConfig(), inputName, outputName)
+		o, err := tiff2pdf.ConvertTiffToPDF(b, tiff2pdf.DefaultConfig(), inputName, outputName)
 		if err != nil {
 			errorCount++
 			log.Printf("ERROR in %s: %s\n", inputName, err)
 		}
 
-		if err = ioutil.WriteFile("pdfs/"+outputName, bOut, 0644); err != nil {
+		if err = ioutil.WriteFile("pdfs/"+outputName, o.PDF, 0644); err != nil {
 			log.Fatalf("%s, writing %s after %d files with %d errors", err, outputName, fileCount, errorCount)
 		}
 	}

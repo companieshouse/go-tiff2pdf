@@ -30,6 +30,8 @@ PDF-Subject: pdf subject line
 PDF-Author: pdf author
 PDF-Creator: pdf creator
 PDF-Title: pdf title
+PDF-PageSize: A4
+PDF-FullPage: true
 
 [TIFF bytes]
 ```
@@ -40,6 +42,7 @@ PDF-Title: pdf title
 HTTP/1.1 200 Ok
 Content-Type: application/pdf
 Content-Length: [n]
+PDF-Pages: [n]
 
 [PDF bytes]
 ```

@@ -47,13 +47,14 @@ func failConversion(w http.ResponseWriter, err error) {
 
 func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 	start := time.Now()
-	var b, o []byte
+	var b []byte
+	var o *tiff2pdf.ConvertTiffToPDFOutput
 	var err error
 
 	defer func() {
 		end := time.Now()
 		diff := end.Sub(start)
-		log.Printf("Converted %d bytes TIFF to %d bytes PDF in %v", len(b), len(o), diff)
+		log.Printf("Converted %d bytes TIFF to %d bytes PDF in %v", len(b), len(o.PDF), diff)
 	}()
 
 	if b, err = ioutil.ReadAll(req.Body); err != nil {
@@ -102,5 +103,6 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Write(o)
+	w.Header().Set("PDF-Pages", strconv.Itoa(int(o.PageCount)))
+	w.Write(o.PDF)
 }

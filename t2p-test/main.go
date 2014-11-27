@@ -29,6 +29,7 @@ func main() {
 		if err != nil {
 			errorCount++
 			log.Printf("ERROR in %s: %s\n", inputName, err)
+			continue
 		}
 
 		if err = ioutil.WriteFile("pdfs/"+outputName, o.PDF, 0644); err != nil {

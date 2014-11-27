@@ -40,7 +40,8 @@ func healthcheck(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(200)
 }
 
-func failConversion(w http.ResponseWriter, err error) {
+func failConversion(xReqId string, w http.ResponseWriter, err error) {
+	log.Printf("%s%s", xReqId, err.Error())
 	w.WriteHeader(400)
 	w.Write([]byte(err.Error()))
 }
@@ -51,14 +52,19 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 	var o *tiff2pdf.ConvertTiffToPDFOutput
 	var err error
 
+	xReqId := req.Header.Get("X-Request-ID")
+	if len(xReqId) > 0 {
+		xReqId = "[" + xReqId + "] "
+	}
+
 	defer func() {
 		end := time.Now()
 		diff := end.Sub(start)
-		log.Printf("Converted %d bytes TIFF to %d bytes PDF in %v", len(b), len(o.PDF), diff)
+		log.Printf("%sConverted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
 	}()
 
 	if b, err = ioutil.ReadAll(req.Body); err != nil {
-		failConversion(w, err)
+		failConversion(xReqId, w, err)
 		return
 	}
 
@@ -67,37 +73,37 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 	c := tiff2pdf.DefaultConfig()
 
 	if hdr, ok := req.Header["PDF-PageSize"]; ok {
-		log.Printf("Setting PDF page size: %s", hdr[0])
+		log.Printf("%sSetting PDF page size: %s", xReqId, hdr[0])
 		c.PageSize = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-FullPage"]; ok {
-		log.Printf("Setting PDF full page: %s", hdr[0])
+		log.Printf("%sSetting PDF full page: %s", xReqId, hdr[0])
 		fullPage, err := strconv.ParseBool(hdr[0])
 		if err != nil {
-			failConversion(w, err)
+			failConversion(xReqId, w, err)
 			return
 		}
 		c.FullPage = fullPage
 	}
 	if hdr, ok := req.Header["PDF-Subject"]; ok {
-		log.Printf("Setting PDF subject: %s", hdr[0])
+		log.Printf("%sSetting PDF subject: %s", xReqId, hdr[0])
 		c.Subject = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Author"]; ok {
-		log.Printf("Setting PDF author: %s", hdr[0])
+		log.Printf("%sSetting PDF author: %s", xReqId, hdr[0])
 		c.Author = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Creator"]; ok {
-		log.Printf("Setting PDF creator: %s", hdr[0])
+		log.Printf("%sSetting PDF creator: %s", xReqId, hdr[0])
 		c.Creator = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Title"]; ok {
-		log.Printf("Setting PDF title: %s", hdr[0])
+		log.Printf("%sSetting PDF title: %s", xReqId, hdr[0])
 		c.Title = hdr[0]
 	}
 
 	if o, err = tiff2pdf.ConvertTiffToPDF(b, c, "input.tif", "output.pdf"); err != nil {
-		failConversion(w, err)
+		failConversion(xReqId, w, err)
 		return
 	}
 

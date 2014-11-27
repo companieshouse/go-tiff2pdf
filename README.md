@@ -19,7 +19,16 @@ This has been tested on:
 
 To convert a TIFF to PDF, `POST` the TIFF bytes as the request body to the `/convert` endpoint.
 
-You can set PDF metadata using the headers `PDF-Subject`, `PDF-Author`, `PDF-Creator` and `PDF-Title`.
+You can set PDF metadata using the headers:
+
+    - `PDF-Subject`
+    - `PDF-Author`
+    - `PDF-Creator`
+    - `PDF-Title`
+    - `PDF-PageSize`
+    - `PDF-FullPage`
+
+Set a `X-Request-ID` header to add a unique ID to request log output.
 
 #### Example request
 
@@ -32,6 +41,7 @@ PDF-Creator: pdf creator
 PDF-Title: pdf title
 PDF-PageSize: A4
 PDF-FullPage: true
+X-Request-ID: my-unique-id
 
 [TIFF bytes]
 ```

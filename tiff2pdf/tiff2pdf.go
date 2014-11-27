@@ -34,6 +34,15 @@ type Config struct {
 	Title string
 }
 
+type Status struct {
+	ErrCount int
+	WarnCount int
+	Err string
+	Warn string
+}
+
+var T2PStatus *Status
+
 // DefaultConfig creates the default tiff2pdf configuration
 func DefaultConfig() *Config {
 	return &Config{
@@ -89,8 +98,17 @@ func stringTo512Cchar(s string) [512]C.char {
 	return cArr
 }
 
+func t2pStart() {
+	T2PStatus = &Status{}
+}
+
 // ConvertTiffToPDF converts an input TIFF byte array to an output PDF byte array
-func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName string) ([]byte, error) {
+func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName string, status *Status) ([]byte, error) {
+	t2pStart()
+	defer func() {
+		status = T2PStatus
+	}()
+
 	input, err := createTiff(tiff, inputName, "rw")
 	if err != nil {
 		return nil, err
@@ -114,14 +132,14 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	t2p := C.t2p_init()
 	defer C.t2p_free(t2p)
 	if t2p == nil {
-		return nil, errors.New("Error: t2p_init!")
+		return nil, errors.New("Error: t2p_init: " + T2PStatus.Err)
 	}
 
 	configureT2p(t2p, config)
 
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
-		return nil, errors.New(t2pErr)
+		return nil, errors.New(T2PStatus.Err)
 	}
 
 	return fdMap[output_fd].buffer, nil

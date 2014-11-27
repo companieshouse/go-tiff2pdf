@@ -12,11 +12,6 @@ const (
 	SEEK_END
 )
 
-var (
-	t2pErr  string
-	t2pWarn string
-)
-
 //export GoTiffReadProc
 func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 	hdr := reflect.SliceHeader{
@@ -123,10 +118,12 @@ func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
 
 //export GoSetError
 func GoSetError(err *C.char) {
-	t2pErr = C.GoString(err)
+	T2PStatus.ErrCount++
+	T2PStatus.Err = C.GoString(err)
 }
 
 //export GoSetWarning
 func GoSetWarning(wrn *C.char) {
-	t2pWarn = C.GoString(wrn)
+	T2PStatus.WarnCount++
+	T2PStatus.Warn = C.GoString(wrn)
 }

@@ -26,7 +26,8 @@ You can set PDF metadata using the headers:
 * `PDF-PageSize`
 * `PDF-FullPage`
 
-Set a `X-Request-ID` header to add a unique ID to request log output.
+Log messages for a request are linked together using a randomly generated unique ID.
+You can set the `X-Request-ID` header to override the default random ID.
 
 #### Example request
 

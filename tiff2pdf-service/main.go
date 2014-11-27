@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -53,8 +55,14 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 	var err error
 
 	xReqId := req.Header.Get("X-Request-ID")
-	if len(xReqId) > 0 {
-		xReqId = "[" + xReqId + "] "
+	if len(xReqId) == 0 {
+		rb := make([]byte, 6)
+		_, err := rand.Read(rb)
+		if err == nil {
+			xReqId = base64.URLEncoding.EncodeToString(rb)
+		} else {
+			xReqId = "NONE"
+		}
 	}
 
 	success := false
@@ -63,9 +71,9 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		end := time.Now()
 		diff := end.Sub(start)
 		if success {
-			log.Printf("%sConverted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
+			log.Printf("[%s] Converted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
 		} else {
-			log.Printf("%sFailed conversion of %d bytes TIFF to PDF in %v", xReqId, len(b), diff)
+			log.Printf("[%s] Failed conversion of %d bytes TIFF to PDF in %v", xReqId, len(b), diff)
 		}
 	}()
 
@@ -73,18 +81,18 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		failConversion(xReqId, w, err)
 		return
 	}
-	log.Printf("%sGot %d input TIFF bytes", xReqId, len(b))
+	log.Printf("[%s] Got %d input TIFF bytes", xReqId, len(b))
 
 	req.Body.Close()
 
 	c := tiff2pdf.DefaultConfig()
 
 	if hdr, ok := req.Header["PDF-PageSize"]; ok {
-		log.Printf("%sSetting PDF page size: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF page size: %s", xReqId, hdr[0])
 		c.PageSize = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-FullPage"]; ok {
-		log.Printf("%sSetting PDF full page: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF full page: %s", xReqId, hdr[0])
 		fullPage, err := strconv.ParseBool(hdr[0])
 		if err != nil {
 			failConversion(xReqId, w, err)
@@ -93,19 +101,19 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		c.FullPage = fullPage
 	}
 	if hdr, ok := req.Header["PDF-Subject"]; ok {
-		log.Printf("%sSetting PDF subject: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF subject: %s", xReqId, hdr[0])
 		c.Subject = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Author"]; ok {
-		log.Printf("%sSetting PDF author: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF author: %s", xReqId, hdr[0])
 		c.Author = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Creator"]; ok {
-		log.Printf("%sSetting PDF creator: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF creator: %s", xReqId, hdr[0])
 		c.Creator = hdr[0]
 	}
 	if hdr, ok := req.Header["PDF-Title"]; ok {
-		log.Printf("%sSetting PDF title: %s", xReqId, hdr[0])
+		log.Printf("[%s] Setting PDF title: %s", xReqId, hdr[0])
 		c.Title = hdr[0]
 	}
 

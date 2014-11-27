@@ -40,6 +40,10 @@ type ConvertTiffToPDFOutput struct {
 	PageCount uint
 	// PDF is the output from tiff2pdf
 	PDF []byte
+	// Errors contains any errors reported by tiff2pdf
+	Errors []string
+	// Warnings contains any warnings reported by tiff2pdf
+	Warnings []string
 }
 
 // DefaultConfig creates the default tiff2pdf configuration
@@ -127,6 +131,8 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	out := &ConvertTiffToPDFOutput{
 		uint(t2p.pdf_pages),
 		fdMap[int(output.tif_fd)].buffer,
+		fdMap[int(output.tif_fd)].errors,
+		fdMap[int(output.tif_fd)].warnings,
 	}
 
 	return out, nil

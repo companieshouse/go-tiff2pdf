@@ -29,7 +29,6 @@ func main() {
 		if err != nil {
 			errorCount++
 			log.Printf("ERROR in %s (%d files, %d errors): %s\n", inputName, fileCount, errorCount, err)
-
 		} else if err = ioutil.WriteFile("pdfs/"+outputName, o.PDF, 0644); err != nil {
 			log.Fatalf("%s, writing %s after %d files with %d errors", err, outputName, fileCount, errorCount)
 		} else if o.Status.WarnCount > 0 {

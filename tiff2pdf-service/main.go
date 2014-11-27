@@ -18,8 +18,8 @@ func main() {
 	setupRouting()
 
 	bind := ":9090"
-	if os.Getenv("TIFF2PDF_SERVICE_LISTEN") != "" {
-		bind = os.Getenv("TIFF2PDF_SERVICE_LISTEN")
+	if newBind := os.Getenv("TIFF2PDF_SERVICE_LISTEN"); newBind != "" {
+		bind = newBind
 	}
 	log.Printf("Listening on %s", bind)
 
@@ -43,7 +43,7 @@ func healthcheck(w http.ResponseWriter, req *http.Request) {
 }
 
 func failConversion(xReqId string, w http.ResponseWriter, err error) {
-	log.Printf("%s%s", xReqId, err.Error())
+	log.Printf("[%s] %s", xReqId, err.Error())
 	w.WriteHeader(400)
 	w.Write([]byte(err.Error()))
 }

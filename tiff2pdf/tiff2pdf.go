@@ -137,7 +137,7 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	}
 
 	out := &ConvertTiffToPDFOutput{
-		uint(t2p.pdf_pages),
+		uint(t2p.tiff_pagecount),
 		fdMap[int(output.tif_fd)].buffer,
 		fdMap[int(output.tif_fd)].errors,
 		fdMap[int(output.tif_fd)].warnings,

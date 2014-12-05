@@ -71,7 +71,7 @@ func convertTiff2PDF(w http.ResponseWriter, req *http.Request) {
 		end := time.Now()
 		diff := end.Sub(start)
 		if success {
-			log.Printf("[%s] Converted %d bytes TIFF to %d bytes PDF in %v", xReqId, len(b), len(o.PDF), diff)
+			log.Printf("[%s] Converted %d bytes TIFF (%d pages) to %d bytes PDF in %v", xReqId, len(b), o.PageCount, len(o.PDF), diff)
 		} else {
 			log.Printf("[%s] Failed conversion of %d bytes TIFF to PDF in %v", xReqId, len(b), diff)
 		}

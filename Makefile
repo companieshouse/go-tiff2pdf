@@ -1,6 +1,7 @@
 LIBTIFF_PATH=vadz/libtiff
 LIBTIFF_REL=../../$(LIBTIFF_PATH)
 TIFF2PDF_C=tiff2pdf/c/tiff2pdf.c
+T2P_TEST_PATH=t2p-test
 all: build
 
 lib:
@@ -15,8 +16,12 @@ run: build
 	./build/go-tiff2pdf
 
 test: deps $(TIFF2PDF_C)
-	go build -work -o build/t2p-test ./t2p-test
-	cd t2p-test && ../build/t2p-test
+	go build -work -o build/t2p-test ./$(T2P_TEST_PATH)
+	test -d $(T2P_TEST_PATH)/tifs || mkdir $(T2P_TEST_PATH)/tifs
+	test -d $(T2P_TEST_PATH)/pdfs || mkdir $(T2P_TEST_PATH)/pdfs
+	if ! ls $(T2P_TEST_PATH)/tifs/* > /dev/null 2>&1; then echo To test, put sample TIFF files into $(T2P_TEST_PATH)/tifs/; false; fi
+	cd $(T2P_TEST_PATH) && ../build/t2p-test
+	echo See PDFs in $(T2P_TEST_PATH)/pdfs/
 
 getdeps:
 	test -d $(LIBTIFF_REL) || git clone git@github.com:$(LIBTIFF_PATH).git $(LIBTIFF_REL)

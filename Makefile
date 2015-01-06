@@ -24,7 +24,7 @@ test: deps $(TIFF2PDF_C)
 	echo See PDFs in $(T2P_TEST_PATH)/pdfs/
 
 getdeps:
-	test -d $(LIBTIFF_REL) || git clone git@github.com:$(LIBTIFF_PATH).git $(LIBTIFF_REL)
+	test -d $(LIBTIFF_REL) || git clone https://github.com/$(LIBTIFF_PATH).git $(LIBTIFF_REL)
 cleandeps:
 	cd $(LIBTIFF_REL) && make distclean
 configdeps: getdeps

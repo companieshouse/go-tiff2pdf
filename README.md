@@ -1,4 +1,4 @@
-go-tiff2pdf [![GoDoc](https://godoc.org/github.com/companieshouse/go-tiff2pdf?status.svg)](https://godoc.org/github.com/companieshouse/go-tiff2pdf)
+go-tiff2pdf [![GoDoc](https://godoc.org/github.com/companieshouse/go-tiff2pdf?status.svg)](https://godoc.org/github.com/companieshouse/go-tiff2pdf) [![Build Status](https://travis-ci.org/companieshouse/go-tiff2pdf.svg?branch=master)](https://travis-ci.org/companieshouse/go-tiff2pdf)
 ===========
 
 tiff2pdf (from libtiff) as a service.

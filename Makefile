@@ -19,7 +19,7 @@ test: deps $(TIFF2PDF_C)
 	cd t2p-test && ../build/t2p-test
 
 getdeps:
-	test -d $(LIBTIFF_REL) || git clone git@github.com:$(LIBTIFF_PATH).git $(LIBTIFF_REL)
+	test -d $(LIBTIFF_REL) || git clone https://github.com/$(LIBTIFF_PATH).git $(LIBTIFF_REL)
 cleandeps:
 	cd $(LIBTIFF_REL) && make distclean
 configdeps: getdeps

@@ -1,3 +1,5 @@
+.DS_Store
+._*
 tiff2pdf/c/tiff2pdf.c
 t2p-test/tifs
 t2p-test/pdfs

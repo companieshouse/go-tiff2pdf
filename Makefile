@@ -2,6 +2,8 @@ LIBTIFF_PATH=vadz/libtiff
 LIBTIFF_REL=../../$(LIBTIFF_PATH)
 TIFF2PDF_C=tiff2pdf/c/tiff2pdf.c
 T2P_TEST_PATH=t2p-test
+# the last known commit that worked with this build (June 2016)
+LIBTIFF_COMMIT=c421b993abe1d6792252833c3bc8b3252b015fb9
 all: build
 
 lib:
@@ -24,7 +26,7 @@ test: deps $(TIFF2PDF_C)
 	echo See PDFs in $(T2P_TEST_PATH)/pdfs/
 
 getdeps:
-	test -d $(LIBTIFF_REL) || git clone https://github.com/$(LIBTIFF_PATH).git $(LIBTIFF_REL)
+	test -d $(LIBTIFF_REL) || git clone https://github.com/$(LIBTIFF_PATH).git $(LIBTIFF_REL) && cd $(LIBTIFF_REL) && git checkout $(LIBTIFF_COMMIT)
 cleandeps:
 	cd $(LIBTIFF_REL) && make distclean
 configdeps: getdeps

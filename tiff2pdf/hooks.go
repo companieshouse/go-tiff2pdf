@@ -25,12 +25,17 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 	}
 	goSlice := *(*[]byte)(unsafe.Pointer(&hdr))
 
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoTiffReadProc load error", fd)
+		return -1
+	}
 	for i := int64(0); i < int64(size); i++ {
-		if fdMap[fd].offset >= int64(len(fdMap[fd].buffer)) {
+		if loaded.offset >= int64(len(loaded.buffer)) {
 			return int(i)
 		}
-		goSlice[i] = fdMap[fd].buffer[fdMap[fd].offset]
-		fdMap[fd].offset++
+		goSlice[i] = loaded.buffer[loaded.offset]
+		loaded.offset++
 	}
 
 	return size
@@ -38,7 +43,12 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffWriteProc
 func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
-	if fdMap[fd].outputdisable == 1 {
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoTiffWriteProc load error", fd)
+		return -1
+	}
+	if loaded.outputdisable == 1 {
 		return size
 	}
 
@@ -53,12 +63,12 @@ func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
 		if i >= len(goSlice) {
 			return int(i)
 		}
-		if fdMap[fd].offset >= int64(len(fdMap[fd].buffer)) {
-			fdMap[fd].buffer = append(fdMap[fd].buffer, goSlice[i])
+		if loaded.offset >= int64(len(loaded.buffer)) {
+			loaded.buffer = append(loaded.buffer, goSlice[i])
 		} else {
-			fdMap[fd].buffer[fdMap[fd].offset] = goSlice[i]
+			loaded.buffer[loaded.offset] = goSlice[i]
 		}
-		fdMap[fd].offset++
+		loaded.offset++
 	}
 
 	return size
@@ -66,27 +76,32 @@ func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffSeekProc
 func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
-	if fdMap[fd].outputdisable == 1 {
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoTiffSeekProc load error", fd)
+		return -1
+	}
+	if loaded.outputdisable == 1 {
 		return offset
 	}
-	newOffset := fdMap[fd].offset
+	newOffset := loaded.offset
 	switch whence {
 	case SEEK_SET:
 		newOffset = offset
 	case SEEK_CUR:
 		newOffset += offset
 	case SEEK_END:
-		newOffset = int64(len(fdMap[fd].buffer)) - offset
+		newOffset = int64(len(loaded.buffer)) - offset
 	}
 	if newOffset < 0 {
 		return -1
-	} else if newOffset > int64(len(fdMap[fd].buffer)) {
-		for int64(len(fdMap[fd].buffer)) < newOffset {
-			fdMap[fd].buffer = append(fdMap[fd].buffer, '\000')
+	} else if newOffset > int64(len(loaded.buffer)) {
+		for int64(len(loaded.buffer)) < newOffset {
+			loaded.buffer = append(loaded.buffer, '\000')
 		}
 	}
-	fdMap[fd].offset = newOffset
-	return fdMap[fd].offset
+	loaded.offset = newOffset
+	return loaded.offset
 }
 
 //export GoTiffCloseProc
@@ -96,17 +111,32 @@ func GoTiffCloseProc(fd int) int {
 
 //export GoTiffSizeProc
 func GoTiffSizeProc(fd int) int {
-	return len(fdMap[fd].buffer)
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoTiffSizeProc load error", fd)
+		return -1
+	}
+	return len(loaded.buffer)
 }
 
 //export GoOutputDisable
 func GoOutputDisable(fd int) {
-	fdMap[fd].outputdisable = 1
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoOutputDisable load error", fd)
+		return
+	}
+	loaded.outputdisable = 1
 }
 
 //export GoOutputEnable
 func GoOutputEnable(fd int) {
-	fdMap[fd].outputdisable = 0
+	loaded, ok := fdMap[fd]
+	if !ok {
+		log.Printf("[%d] GoOutputEnable load error", fd)
+		return
+	}
+	loaded.outputdisable = 0
 }
 
 /* These probably aren't needed... */
@@ -123,21 +153,25 @@ func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
 //export GoTiffWarningExt
 func GoTiffWarningExt(fd int, err *C.char) {
 	s := C.GoString(err)
-	if _, ok := fdMap[fd]; !ok {
+
+	loaded, ok := fdMap[fd]
+	if !ok {
 		// TODO don't think we care about warnings with fd 0
 		log.Printf("[%d] WARNING: %s", fd, s)
 		return
 	}
-	fdMap[fd].warnings = append(fdMap[fd].warnings, s)
+	loaded.warnings = append(fdMap[fd].warnings, s)
 }
 
 //export GoTiffErrorExt
 func GoTiffErrorExt(fd int, err *C.char) {
 	s := C.GoString(err)
-	if _, ok := fdMap[fd]; !ok {
+
+	loaded, ok := fdMap[fd]
+	if !ok {
 		// TODO don't think we care about errors with fd 0
 		log.Printf("[%d] ERROR: %s", fd, s)
 		return
 	}
-	fdMap[fd].errors = append(fdMap[fd].errors, s)
+	loaded.errors = append(fdMap[fd].errors, s)
 }

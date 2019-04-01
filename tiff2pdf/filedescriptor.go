@@ -2,10 +2,12 @@ package tiff2pdf
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
 const fdFirst = 10
+
 var ErrOpenFailed = errors.New("Opening TIFF failed")
 
 type fd struct {
@@ -25,9 +27,9 @@ func NewFd(buffer []byte) *fd {
 	var thisFd int
 
 	fdo := &fd{
-		buffer: buffer,
-		warnings: make([]string,0),
-		errors: make([]string,0),
+		buffer:   buffer,
+		warnings: make([]string, 0),
+		errors:   make([]string, 0),
 	}
 
 	mtx.Lock()
@@ -47,7 +49,13 @@ func NewFd(buffer []byte) *fd {
 
 	mtx.Unlock()
 
-	fdMap[thisFd].fd = thisFd
+	// fdMap[thisFd].fd = thisFd
+	loaded, ok := fdMap[thisFd]
+	if !ok {
+		log.Printf("[%d] NewFd load error", thisFd)
+		return nil
+	}
+	loaded.fd = thisFd
 
 	return fdo
 }

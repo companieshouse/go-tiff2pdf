@@ -136,12 +136,15 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 		return nil, errors.New("t2p_error") // FIXME capture FD0
 	}
 
+	loaded, ok := fdMap[int(output.tif_fd)]
+	if !ok {
+		return nil, errors.New("t2p_error loading from map")
+	}
 	out := &ConvertTiffToPDFOutput{
 		uint(t2p.tiff_pagecount),
-		fdMap[int(output.tif_fd)].buffer,
-		fdMap[int(output.tif_fd)].errors,
-		fdMap[int(output.tif_fd)].warnings,
+		loaded.buffer,
+		loaded.errors,
+		loaded.warnings,
 	}
-
 	return out, nil
 }

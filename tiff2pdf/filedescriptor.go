@@ -21,7 +21,10 @@ type fd struct {
 
 var fdCount = fdFirst
 var mtx sync.Mutex
-var fdMap = make(map[int]*fd)
+
+// var fdMap = make(map[int]*fd)
+// var fdMap = MapWrapper{wrappedMap: make(map[int]*fd)}
+var fdMap MapWrapper
 
 func NewFd(buffer []byte) *fd {
 	var thisFd int
@@ -38,9 +41,12 @@ func NewFd(buffer []byte) *fd {
 		if fdCount > 5000 {
 			fdCount = fdFirst
 		}
-		if _, ok := fdMap[fdCount]; !ok {
+		// if _, ok := fdMap[fdCount]; !ok {
+		_, ok := fdMap.Load(fdCount)
+		if !ok {
 			thisFd = fdCount
-			fdMap[thisFd] = fdo
+			// fdMap[thisFd] = fdo
+			fdMap.Store(thisFd, fdo)
 			fdCount++
 			break
 		}
@@ -50,7 +56,8 @@ func NewFd(buffer []byte) *fd {
 	mtx.Unlock()
 
 	// fdMap[thisFd].fd = thisFd
-	loaded, ok := fdMap[thisFd]
+	// loaded, ok := fdMap[thisFd]
+	loaded, ok := fdMap.Load(thisFd)
 	if !ok {
 		log.Printf("[%d] NewFd load error", thisFd)
 		return nil

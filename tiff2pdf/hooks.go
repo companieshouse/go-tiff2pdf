@@ -25,7 +25,6 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 	}
 	goSlice := *(*[]byte)(unsafe.Pointer(&hdr))
 
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoTiffReadProc load error", fd)
@@ -44,7 +43,6 @@ func GoTiffReadProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffWriteProc
 func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoTiffWriteProc load error", fd)
@@ -78,7 +76,6 @@ func GoTiffWriteProc(fd int, ptr unsafe.Pointer, size int) int {
 
 //export GoTiffSeekProc
 func GoTiffSeekProc(fd int, offset int64, whence int) int64 {
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoTiffSeekProc load error", fd)
@@ -114,7 +111,6 @@ func GoTiffCloseProc(fd int) int {
 
 //export GoTiffSizeProc
 func GoTiffSizeProc(fd int) int {
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoTiffSizeProc load error", fd)
@@ -125,7 +121,6 @@ func GoTiffSizeProc(fd int) int {
 
 //export GoOutputDisable
 func GoOutputDisable(fd int) {
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoOutputDisable load error", fd)
@@ -136,7 +131,6 @@ func GoOutputDisable(fd int) {
 
 //export GoOutputEnable
 func GoOutputEnable(fd int) {
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		log.Printf("[%d] GoOutputEnable load error", fd)
@@ -160,7 +154,6 @@ func GoTiffUnmapProc(fd int, base unsafe.Pointer, size int64) {
 func GoTiffWarningExt(fd int, err *C.char) {
 	s := C.GoString(err)
 
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		// TODO don't think we care about warnings with fd 0
@@ -174,7 +167,6 @@ func GoTiffWarningExt(fd int, err *C.char) {
 func GoTiffErrorExt(fd int, err *C.char) {
 	s := C.GoString(err)
 
-	// loaded, ok := fdMap[fd]
 	loaded, ok := fdMap.Load(fd)
 	if !ok {
 		// TODO don't think we care about errors with fd 0

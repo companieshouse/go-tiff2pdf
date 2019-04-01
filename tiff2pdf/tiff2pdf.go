@@ -109,7 +109,6 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	}
 	input_fd := int(input.tif_fd)
 	defer func() {
-		// delete(fdMap, input_fd)
 		fdMap.Delete(input_fd)
 	}()
 
@@ -119,7 +118,6 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 	}
 	output_fd := int(output.tif_fd)
 	defer func() {
-		// delete(fdMap, output_fd)
 		fdMap.Delete(output_fd)
 	}()
 
@@ -138,7 +136,6 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 		return nil, errors.New("t2p_error") // FIXME capture FD0
 	}
 
-	// loaded, ok := fdMap[int(output.tif_fd)]
 	loaded, ok := fdMap.Load(int(output.tif_fd))
 	if !ok {
 		return nil, errors.New("t2p_error loading from map")

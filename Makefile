@@ -1,3 +1,4 @@
+TESTS ?= ./...
 LIBTIFF_PATH=vadz/libtiff
 LIBTIFF_REL=../../$(LIBTIFF_PATH)
 TIFF2PDF_C=tiff2pdf/c/tiff2pdf.c
@@ -17,7 +18,12 @@ build: deps $(TIFF2PDF_C)
 run: build
 	./build/go-tiff2pdf
 
-test: deps $(TIFF2PDF_C)
+test: test-unit test-integration
+
+test-unit:
+	go test $(TESTS) -run 'Unit' -coverprofile=coverage.out
+
+test-integration: deps $(TIFF2PDF_C)
 	go build -work -o build/t2p-test ./$(T2P_TEST_PATH)
 	test -d $(T2P_TEST_PATH)/tifs || mkdir $(T2P_TEST_PATH)/tifs
 	test -d $(T2P_TEST_PATH)/pdfs || mkdir $(T2P_TEST_PATH)/pdfs
@@ -38,4 +44,4 @@ deps: configdeps
 clean:
 	rm -r build $(TIFF2PDF_C)
 
-.PHONY: all lib build run test deps configdeps getdeps cleandeps clean
+.PHONY: all lib build run test test-unit test-integration deps configdeps getdeps cleandeps clean

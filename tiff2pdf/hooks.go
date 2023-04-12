@@ -1,8 +1,8 @@
 package tiff2pdf
 
-/*
-#include <stdarg.h>
-*/
+// #include <stdarg.h>
+// #include <stdio.h>
+// #include <errno.h>
 import "C"
 import (
 	"log"

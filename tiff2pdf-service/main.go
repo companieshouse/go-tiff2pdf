@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/companieshouse/go-tiff2pdf/tiff2pdf"
-	"github.com/gorilla/pat"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 }
 
 func setupRouting() {
-	p := pat.New()
+	p := mux.NewRouter()
 
 	p.Path("/healthcheck").Methods("GET").HandlerFunc(healthcheck)
 	p.Path("/convert").Methods("POST").HandlerFunc(convertTiff2PDF)

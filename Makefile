@@ -30,10 +30,9 @@ getdeps:
 cleandeps:
 	cd $(LIBTIFF_REL) && make distclean
 configdeps: getdeps
-	cd $(LIBTIFF_REL) && ( test -f Makefile || ./configure --disable-pixarlog --disable-zlib )
+	cd $(LIBTIFF_REL) && ( test -f Makefile || ./configure --build=aarch64-unknown-linux-gnu --disable-pixarlog --disable-zlib)
 deps: configdeps
 	cd $(LIBTIFF_REL) && make
-	go get github.com/gorilla/pat
 
 clean:
 	rm -r build $(TIFF2PDF_C)

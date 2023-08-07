@@ -37,4 +37,5 @@ deps: configdeps
 clean:
 	rm -r build $(TIFF2PDF_C)
 
-.PHONY: all lib build run test deps configdeps getdeps cleandeps clean
+# .PHONY: all lib build run test deps configdeps getdeps cleandeps clean
+.PHONY: all lib build run test deps configdeps getdeps cleandeps

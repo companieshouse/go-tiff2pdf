@@ -13,7 +13,7 @@ $(TIFF2PDF_C): $(LIBTIFF_REL)/tools/tiff2pdf.c
 	sed -e 's/^t2p_enable(/__not_&/' -e 's/^t2p_disable(/__not_&/' -e '/^int main(/,/^}/d' < $< > $@.tmp
 	mv $@.tmp $@
 build: deps $(TIFF2PDF_C)
-	CGO_ENABLED=1 GOOS=linux go build -work -o build/go-tiff2pdf ./tiff2pdf-service
+	go build -work -o build/go-tiff2pdf ./tiff2pdf-service
 run: build
 	./build/go-tiff2pdf
 

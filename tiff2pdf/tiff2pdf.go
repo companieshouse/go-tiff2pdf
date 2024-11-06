@@ -2,7 +2,6 @@ package tiff2pdf
 
 /*
 #cgo CFLAGS: -D_THREAD_SAFE -pthread -I../../../vadz/libtiff/libtiff
-#cgo LDFLAGS: -lm
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -16,7 +15,7 @@ import (
 	"unsafe"
 )
 
-//Config represents the command line tiff2pdf configuration
+// Config represents the command line tiff2pdf configuration
 type Config struct {
 	// PageSize sets the PDF page size, e.g. legal, letter or A4
 	PageSize string

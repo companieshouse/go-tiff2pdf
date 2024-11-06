@@ -4,6 +4,7 @@ RUN apt-get update
 RUN apt-get install -y g++
 
 WORKDIR /go/src
+RUN go version
 RUN go get github.com/gorilla/pat
 RUN git clone https://github.com/companieshouse/go-tiff2pdf github.com/companieshouse/go-tiff2pdf
 

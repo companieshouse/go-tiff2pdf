@@ -1,6 +1,6 @@
 module github.com/companieshouse/go-tiff2pdf
 
-go 1.19
+go 1.23
 
 // require github.com/gorilla/pat v1.0.1
 

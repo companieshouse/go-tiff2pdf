@@ -1,15 +1,13 @@
-FROM golang:1.4
+FROM 416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-golang-build-1.23:latest
 
-RUN apt-get update
-RUN apt-get install -y g++
+RUN yum update \
+    && yum install -y g++
 
 WORKDIR /go/src
-RUN git clone https://github.com/companieshouse/go-tiff2pdf github.com/companieshouse/go-tiff2pdf
 
-WORKDIR /go/src/github.com/companieshouse/go-tiff2pdf
-RUN make
-RUN go install ./tiff2pdf-service
-
+RUN git clone https://github.com/companieshouse/go-tiff2pdf . \
+    && git checkout go_1.23_test \
+    && make
+    
 EXPOSE 9090
-
-ENTRYPOINT ["/go/bin/tiff2pdf-service"]
+CMD ["./build/go-tiff2pdf"]

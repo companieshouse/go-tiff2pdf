@@ -1,5 +1,5 @@
 module github.com/companieshouse/go-tiff2pdf
 
-go 1.19
+go 1.23
 
-require github.com/gorilla/mux v1.8.0 // indirect
+require github.com/gorilla/mux v1.8.1

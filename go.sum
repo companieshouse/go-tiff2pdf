@@ -1,0 +1,8 @@
+github.com/companieshouse/go-tiff2pdf v0.0.0-20191216133729-ff30e9815544 h1:Sy1q6QMeiumxfjE0mVM7Uk6nr9kJLXM92S8fRM7Iips=
+github.com/companieshouse/go-tiff2pdf v0.0.0-20191216133729-ff30e9815544/go.mod h1:R0AQkQ8EVbTw/UR4AjqJ1vLxaoNFq0JEUODohs1VgX4=
+github.com/gorilla/context v1.1.2 h1:WRkNAv2uoa03QNIc1A6u4O7DAGMUVoopZhkiXWA2V1o=
+github.com/gorilla/context v1.1.2/go.mod h1:KDPwT9i/MeWHiLl90fuTgrt4/wPcv75vFAZLaOOcbxM=
+github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
+github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
+github.com/gorilla/pat v1.0.2 h1:TDh/RulbnPxMQACcwbgMF5Bf00jaGoeYBNu+XUFuwtE=
+github.com/gorilla/pat v1.0.2/go.mod h1:ioQ7dFQ2KXmOmWLJs6vZAfRikcm2D2JyuLrL9b5wVCg=

@@ -17,7 +17,7 @@ import (
 func main() {
 	setupRouting()
 
-	bind := ":9090"
+	bind := "0.0.0.0:9090"
 	if newBind := os.Getenv("TIFF2PDF_SERVICE_LISTEN"); newBind != "" {
 		bind = newBind
 	}

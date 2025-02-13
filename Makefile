@@ -7,18 +7,18 @@ LIBTIFF_COMMIT=c421b993abe1d6792252833c3bc8b3252b015fb9
 all: build
 
 lib:
-	go build -work .
+	CGO_ENABLED=1 go build -work .
 
 $(TIFF2PDF_C): $(LIBTIFF_REL)/tools/tiff2pdf.c
 	sed -e 's/^t2p_enable(/__not_&/' -e 's/^t2p_disable(/__not_&/' -e '/^int main(/,/^}/d' < $< > $@.tmp
 	mv $@.tmp $@
 build: deps $(TIFF2PDF_C)
-	go build -work -o build/go-tiff2pdf ./tiff2pdf-service
+	CGO_ENABLED=1 go build -work -o build/go-tiff2pdf ./tiff2pdf-service
 run: build
 	./build/go-tiff2pdf
 
 test: deps $(TIFF2PDF_C)
-	go build -work -o build/t2p-test ./$(T2P_TEST_PATH)
+	CGO_ENABLED=1 go build -work -o build/t2p-test ./$(T2P_TEST_PATH)
 	test -d $(T2P_TEST_PATH)/tifs || mkdir $(T2P_TEST_PATH)/tifs
 	test -d $(T2P_TEST_PATH)/pdfs || mkdir $(T2P_TEST_PATH)/pdfs
 	if ! ls $(T2P_TEST_PATH)/tifs/* > /dev/null 2>&1; then echo To test, put sample TIFF files into $(T2P_TEST_PATH)/tifs/; false; fi

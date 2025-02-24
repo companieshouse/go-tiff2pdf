@@ -6,7 +6,7 @@ RUN yum update \
 WORKDIR /go/src
 
 RUN git clone https://github.com/companieshouse/go-tiff2pdf . \
-    && git checkout go_1.23_test \
+    && git checkout main \
     && make
     
 EXPOSE 9090

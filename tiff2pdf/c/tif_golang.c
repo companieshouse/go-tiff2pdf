@@ -23,6 +23,20 @@
 
 /*
  * TIFF Library Golang-specific Routines.
+ *
+ * This file is the bridge between libtiff and the Go I/O layer. libtiff's own
+ * tif_unix.c / tif_error.c / tif_warning.c are compiled in unchanged (see
+ * libtiff.h), so this file no longer reimplements allocators or error
+ * handlers. It provides:
+ *
+ *   - GoTIFFFdOpen: opens a TIFF whose I/O is serviced by Go callbacks,
+ *     identified by a small integer "fd" carried as the libtiff client data.
+ *   - Go error/warning handlers, installed via libtiff's public handler API.
+ *     libtiff routes every message (TIFFError, TIFFErrorExt and the
+ *     re-entrant TIFFErrorExtR used internally) through the global *Ext
+ *     handler when no per-TIFF handler is set, so registering these captures
+ *     all diagnostics. The default stderr handlers are cleared so messages go
+ *     only to Go.
  */
 
 #include "tif_config.h"
@@ -32,9 +46,11 @@
 #endif
 
 #include <errno.h>
-
 #include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #ifdef HAVE_UNISTD_H
@@ -45,197 +61,119 @@
 # include <fcntl.h>
 #endif
 
-#ifdef HAVE_IO_H
-# include <io.h>
-#endif
-
 #include "tiffiop.h"
 
+/* The Go callbacks (//export in hooks.go) take the fd as a Go int. libtiff
+ * carries it as thandle_t (a pointer-sized opaque handle), so convert via
+ * intptr_t at each boundary. Names are prefixed _go to avoid colliding with
+ * tif_unix.c's own static _tiff*Proc helpers (same translation unit). */
+
 static tmsize_t
-_tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
+_goReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
-	return (tmsize_t)GoTiffReadProc(fd, buf, size);
+	return (tmsize_t)GoTiffReadProc((int)(intptr_t)fd, buf, size);
 }
 
 static tmsize_t
-_tiffNoop(thandle_t fd, void* buf, tmsize_t size)
+_goNoopReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
+	(void) fd; (void) buf; (void) size;
 	return -1;
 }
 
 static tmsize_t
-_tiffWriteProc(thandle_t fd, void* buf, tmsize_t size)
+_goWriteProc(thandle_t fd, void* buf, tmsize_t size)
 {
-	return GoTiffWriteProc(fd, buf, size);
+	return (tmsize_t)GoTiffWriteProc((int)(intptr_t)fd, buf, size);
 }
 
-static uint64
-_tiffSeekProc(thandle_t fd, uint64 off, int whence)
+static uint64_t
+_goSeekProc(thandle_t fd, uint64_t off, int whence)
 {
-	return (uint64)GoTiffSeekProc(fd, off, whence);
+	return (uint64_t)GoTiffSeekProc((int)(intptr_t)fd, (int64_t)off, whence);
 }
 
 static int
-_tiffCloseProc(thandle_t fd)
+_goCloseProc(thandle_t fd)
 {
-	return GoTiffCloseProc(fd);
+	return GoTiffCloseProc((int)(intptr_t)fd);
 }
 
-static uint64
-_tiffSizeProc(thandle_t fd)
+static uint64_t
+_goSizeProc(thandle_t fd)
 {
-	return GoTiffSizeProc(fd);
+	return (uint64_t)GoTiffSizeProc((int)(intptr_t)fd);
 }
-
-#ifdef HAVE_MMAP
-#include <sys/mman.h>
 
 static int
-_tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
+_goMapProc(thandle_t fd, void** pbase, toff_t* psize)
 {
-	return GoTiffMapProc(fd, pbase, psize);
-}
-
-static void
-_tiffUnmapProc(thandle_t fd, void* base, toff_t size)
-{
-	GoTiffUnmapProc(fd, base, size);
-}
-#else /* !HAVE_MMAP */
-static int
-_tiffMapProc(thandle_t fd, void** pbase, toff_t* psize)
-{
-	//GoTiffMapProc(fd, pbase, psize);
 	(void) fd; (void) pbase; (void) psize;
 	return (0);
 }
 
 static void
-_tiffUnmapProc(thandle_t fd, void* base, toff_t size)
+_goUnmapProc(thandle_t fd, void* base, toff_t size)
 {
-	//GoTiffUnmapProc(fd, base, size);
 	(void) fd; (void) base; (void) size;
 }
-#endif /* !HAVE_MMAP */
+
+static void
+_goErrorHandlerExt(thandle_t fd, const char* module, const char* fmt, va_list ap)
+{
+	char s[4096];
+	(void) module;
+	vsnprintf(s, sizeof(s), fmt, ap);
+	GoTiffErrorExt((int)(intptr_t)fd, s);
+}
+
+static void
+_goWarningHandlerExt(thandle_t fd, const char* module, const char* fmt, va_list ap)
+{
+	char s[4096];
+	(void) module;
+	vsnprintf(s, sizeof(s), fmt, ap);
+	GoTiffWarningExt((int)(intptr_t)fd, s);
+}
+
+static void
+_goInstallHandlers(void)
+{
+	static int installed = 0;
+	if (installed)
+		return;
+	installed = 1;
+	/* Clear the default handlers (which print to stderr) so libtiff
+	 * diagnostics are delivered only to Go. */
+	TIFFSetErrorHandler(NULL);
+	TIFFSetWarningHandler(NULL);
+	TIFFSetErrorHandlerExt(_goErrorHandlerExt);
+	TIFFSetWarningHandlerExt(_goWarningHandlerExt);
+}
 
 /*
- * Open a TIFF file descriptor for read/writing.
+ * Open a TIFF for read/writing, backed by the Go I/O callbacks identified by fd.
  */
 TIFF*
-TIFFFdOpen(int fd, const char* name, const char* mode)
+GoTIFFFdOpen(int fd, const char* name, const char* mode)
 {
 	TIFF* tif;
-	TIFFReadWriteProc readproc = _tiffReadProc;
+	TIFFReadWriteProc readproc = _goReadProc;
 
-	if (0 == strncmp(name+strlen(name)-4, ".pdf", 4)) {
-		readproc = _tiffNoop;
+	_goInstallHandlers();
+
+	if (strlen(name) >= 4 && 0 == strncmp(name + strlen(name) - 4, ".pdf", 4)) {
+		readproc = _goNoopReadProc;
 	}
 
 	tif = TIFFClientOpen(name, mode,
-	    (thandle_t) fd,
-	    readproc, _tiffWriteProc,
-	    _tiffSeekProc, _tiffCloseProc, _tiffSizeProc,
-	    _tiffMapProc, _tiffUnmapProc);
+	    (thandle_t)(intptr_t) fd,
+	    readproc, _goWriteProc,
+	    _goSeekProc, _goCloseProc, _goSizeProc,
+	    _goMapProc, _goUnmapProc);
 	if (tif)
 		tif->tif_fd = fd;
 	return (tif);
-}
-
-void*
-_TIFFmalloc(tmsize_t s)
-{
-        if (s == 0)
-                return ((void *) NULL);
-
-	return (malloc((size_t) s));
-}
-
-void
-_TIFFfree(void* p)
-{
-	free(p);
-}
-
-void*
-_TIFFrealloc(void* p, tmsize_t s)
-{
-	return (realloc(p, (size_t) s));
-}
-
-void
-_TIFFmemset(void* p, int v, tmsize_t c)
-{
-	memset(p, v, (size_t) c);
-}
-
-void
-_TIFFmemcpy(void* d, const void* s, tmsize_t c)
-{
-	memcpy(d, s, (size_t) c);
-}
-
-int
-_TIFFmemcmp(const void* p1, const void* p2, tmsize_t c)
-{
-	return (memcmp(p1, p2, (size_t) c));
-}
-
-void
-TIFFWarning(const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	char s[4096];
-	vsprintf(s, fmt, ap);
-	GoTiffErrorExt(0, s);
-	va_end(ap);
-}
-
-void
-TIFFWarningExt(thandle_t fd, const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	char s[4096];
-	vsprintf(s, fmt, ap);
-	GoTiffErrorExt(fd, s);
-	va_end(ap);
-}
-
-void
-TIFFError(const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	char s[4096];
-	vsprintf(s, fmt, ap);
-	GoTiffErrorExt(0, s);
-	va_end(ap);
-}
-
-void
-TIFFErrorExt(thandle_t fd, const char* module, const char* fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	char s[4096];
-	vsprintf(s, fmt, ap);
-	GoTiffErrorExt(fd, s);
-	va_end(ap);
-}
-
-void
-t2p_disable(TIFF *tif)
-{
-	T2P *t2p = (T2P*) TIFFClientdata(tif);
-	GoOutputDisable(t2p);
-}
-
-void
-t2p_enable(TIFF *tif)
-{
-	T2P *t2p = (T2P*) TIFFClientdata(tif);
-	GoOutputEnable(t2p);
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */

@@ -1,0 +1,23 @@
+# Local-branch build for testing uncommitted/branch changes in a container.
+# Unlike the deploy Dockerfile (which clones main from GitHub), this copies the
+# working tree, so it builds exactly what you have checked out.
+#
+#   docker build -f Dockerfile.local -t go-tiff2pdf-local .
+#   docker run --rm -p 9090:9090 go-tiff2pdf-local
+#
+FROM 416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-golang-build-1.23:latest
+
+# g++ builds libtiff's C++ stream helper; curl/tar/xz fetch and unpack the
+# pinned libtiff release tarball during `make deps`.
+RUN yum update \
+    && yum install -y g++ curl tar xz
+
+WORKDIR /go/src
+
+# .dockerignore excludes libtiff-src/ and build artifacts, so `make` fetches and
+# configures libtiff fresh for this (Linux) image rather than reusing a host build.
+COPY . .
+RUN make
+
+EXPOSE 9090
+CMD ["./build/go-tiff2pdf"]

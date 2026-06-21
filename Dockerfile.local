@@ -5,18 +5,27 @@
 #   docker build -f Dockerfile.local -t go-tiff2pdf-local .
 #   docker run --rm -p 9090:9090 go-tiff2pdf-local
 #
-FROM 416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-golang-build-1.23:latest
+FROM 416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-golang-build-1.26:latest
+
+ENV GOPRIVATE="github.com/companieshouse/*"
+ENV GONOPROXY="github.com/companieshouse/*,proxy.golang.org/*,github.com/gorilla/*"
 
 # g++ builds libtiff's C++ stream helper; curl/tar/xz fetch and unpack the
 # pinned libtiff release tarball during `make deps`.
-RUN yum update \
-    && yum install -y g++ curl tar xz
+RUN yum clean all
+RUN yum update
+RUN yum install -y g++ 
+# RUN yum install -y curl
+RUN yum install -y tar
+RUN yum install -y xz
 
 WORKDIR /go/src
 
 # .dockerignore excludes libtiff-src/ and build artifacts, so `make` fetches and
 # configures libtiff fresh for this (Linux) image rather than reusing a host build.
 COPY . .
+# RUN curl -fsSL -o tiff-4.7.1.tar.xz https://download.osgeo.org/libtiff/tiff-4.7.1.tar.xz
+RUN ls -altr
 RUN make
 
 EXPOSE 9090

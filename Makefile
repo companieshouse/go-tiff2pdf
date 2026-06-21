@@ -57,7 +57,7 @@ getdeps:
 	    rm -f $(LIBTIFF_TARBALL) )
 cleandeps:
 	rm -rf $(LIBTIFF_REL)
-configdeps: getdeps
+configdeps:
 	cd $(LIBTIFF_REL) && ( test -f libtiff/tif_config.h || ./configure $(LIBTIFF_CONFIGURE_FLAGS) )
 deps: configdeps
 	$(MAKE) -C $(LIBTIFF_REL)/libtiff
@@ -65,4 +65,4 @@ deps: configdeps
 clean:
 	rm -r build $(TIFF2PDF_C)
 
-.PHONY: all lib build run test deps configdeps getdeps cleandeps clean
+.PHONY: all lib build run test deps configdeps cleandeps clean

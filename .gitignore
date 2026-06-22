@@ -6,3 +6,4 @@ t2p-test/pdfs
 build
 libtiff-src
 tiff-*.tar.xz
+*.crt

@@ -1,6 +1,6 @@
 FROM 416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-golang-build-1.26:latest
 
-# g++ builds libtiff's C++ stream helper; curl/tar/xz fetch and unpack the
+# g++ builds libtiff's C++ stream helper; tar/xz fetch and unpack the
 # pinned libtiff release tarball during `make deps`.
 RUN yum update \
     && yum install -y g++ tar xz

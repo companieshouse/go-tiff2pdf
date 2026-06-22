@@ -17,7 +17,7 @@ added or removed source files.
 - Run `./build/go-tiff2pdf` or `make run` to start the service
 
 This has been tested on:
-* Go 1.23
+* Go 1.26
 * libtiff 4.7.1
 
 ### TIFF to PDF request example

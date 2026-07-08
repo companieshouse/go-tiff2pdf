@@ -1,17 +1,24 @@
-go-tiff2pdf [![GoDoc](https://godoc.org/github.com/companieshouse/go-tiff2pdf?status.svg)](https://godoc.org/github.com/companieshouse/go-tiff2pdf) [![Build Status](https://travis-ci.org/companieshouse/go-tiff2pdf.svg?branch=master)](https://travis-ci.org/companieshouse/go-tiff2pdf)
+go-tiff2pdf [![Go Reference](https://pkg.go.dev/badge/github.com/companieshouse/go-tiff2pdf.svg)](https://pkg.go.dev/github.com/companieshouse/go-tiff2pdf)
 ===========
 
 tiff2pdf (from libtiff) as a service.
 
+libtiff is pinned to a specific upstream release (see `LIBTIFF_VERSION` /
+`LIBTIFF_SHA256` in the [Makefile](Makefile)) and statically compiled into the
+binary. To take a newer libtiff, bump those two variables and refresh the
+`#include` list in [tiff2pdf/c/libtiff.h](tiff2pdf/c/libtiff.h) if upstream has
+added or removed source files.
+
 ### Getting started
 
-- Run `make deps` to download and install libtiff
+- Run `make deps` to download, verify (SHA256) and configure the pinned libtiff release
 - Run `make test` (optional: converts `t2p-test/tifs/*` to PDFs in `t2p-test/pdfs/`)
 - Run `make` to build `go-tiff2pdf` library and service
 - Run `./build/go-tiff2pdf` or `make run` to start the service
 
 This has been tested on:
-* Go 1.23
+* Go 1.26
+* libtiff 4.7.1
 
 ### TIFF to PDF request example
 

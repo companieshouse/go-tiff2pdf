@@ -1,11 +1,27 @@
 package tiff2pdf
 
 /*
-#cgo CFLAGS: -D_THREAD_SAFE -pthread -I../../../vadz/libtiff/libtiff
+#cgo CFLAGS: -D_THREAD_SAFE -pthread -I../libtiff-src/libtiff
 #cgo LDFLAGS: -lm
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+
+// Forward declarations of the Go callbacks exported from hooks.go. They are
+// used by the C files included below (tif_golang.c, and the GoOutput* hooks
+// spliced into tiff2pdf.c by the Makefile). The generated "_cgo_export.h"
+// cannot be included from this package's own preamble, so declare them here
+// with cgo's ABI types (Go int -> long long).
+extern long long GoTiffReadProc(long long fd, void *ptr, long long size);
+extern long long GoTiffWriteProc(long long fd, void *ptr, long long size);
+extern long long GoTiffSeekProc(long long fd, long long offset, long long whence);
+extern long long GoTiffCloseProc(long long fd);
+extern long long GoTiffSizeProc(long long fd);
+extern void GoOutputDisable(long long fd);
+extern void GoOutputEnable(long long fd);
+extern void GoTiffWarningExt(long long fd, char *err);
+extern void GoTiffErrorExt(long long fd, char *err);
+
 #include "c/libtiff.h"
 #include "c/tiff2pdf.c"
 #include "c/tif_golang.c"
@@ -60,7 +76,7 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 
 	cName := C.CString(name)
 	cMode := C.CString(mode)
-	tif := C.TIFFFdOpen(C.int(newFd.fd), cName, cMode)
+	tif := C.GoTIFFFdOpen(C.int(newFd.fd), cName, cMode)
 	C.free(unsafe.Pointer(cName))
 	C.free(unsafe.Pointer(cMode))
 

@@ -1,0 +1,12 @@
+# Keep host-built artifacts out of the image so the build runs fresh inside it.
+# libtiff-src/ is configured per-platform (macOS host vs Linux image), so it
+# must be re-fetched/re-configured by `make deps` in the container.
+.git
+libtiff-src
+tiff-*.tar.xz
+build
+tiff2pdf/c/tiff2pdf.c
+t2p-test/tifs
+t2p-test/pdfs
+.DS_Store
+._*

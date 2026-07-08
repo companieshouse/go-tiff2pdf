@@ -3,7 +3,7 @@
 # must be re-fetched/re-configured by `make deps` in the container.
 .git
 libtiff-src
-tiff-*.tar.xz
+tiff-*.zip
 build
 tiff2pdf/c/tiff2pdf.c
 t2p-test/tifs

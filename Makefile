@@ -33,6 +33,7 @@ $(TIFF2PDF_C): $(LIBTIFF_REL)/tools/tiff2pdf.c
 	# the output enable/disable toggle to the Go I/O layer (see tif_golang.c).
 	sed -e '/^int main(/,/^}/d' \
 	    -e '/^#include "libport.h"/d' \
+	    -e '/^#include "tiff_tools.h"/d' \
 	    -e 's/t2p->outputdisable = 1;/GoOutputDisable((int)(intptr_t)t2p);/' \
 	    -e 's/t2p->outputdisable = 0;/GoOutputEnable((int)(intptr_t)t2p);/' \
 	    < $< > $@.tmp

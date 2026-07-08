@@ -1,6 +1,6 @@
 # libtiff is pulled from the maintained upstream release (not the abandoned
 # vadz/libtiff GitHub mirror, whose newest tag is from 2017). Pin to a tagged
-# release tarball and verify its SHA256 so the build is reproducible and the
+# release archive and verify its SHA256 so the build is reproducible and the
 # library carries current security fixes.
 # Distributed as the .zip release and extracted with unzip: consumer CI images
 # that build this package already ship unzip, whereas xz (and sometimes even

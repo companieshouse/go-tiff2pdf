@@ -6,8 +6,8 @@
 # that build this package already ship unzip, whereas xz (and sometimes even
 # gzip) can be absent from a minimal base -- so no downstream image needs an
 # extra decompressor installed just to unpack libtiff.
-LIBTIFF_VERSION=4.7.1
-LIBTIFF_SHA256=af20245c98007a9a0a33fa5491d56a3d7287b796b8dd6ba6ea7f3f60d1b0aa68
+LIBTIFF_VERSION=4.7.2
+LIBTIFF_SHA256=964f5556d97301a8ad63e792bac56b0387e3f5e65972d857fec5a059730dd24c
 LIBTIFF_ARCHIVE=tiff-$(LIBTIFF_VERSION).zip
 LIBTIFF_URL=https://download.osgeo.org/libtiff/$(LIBTIFF_ARCHIVE)
 # extracted, repo-local (git-ignored) libtiff source tree

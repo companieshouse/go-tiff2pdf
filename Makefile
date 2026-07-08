@@ -1,11 +1,15 @@
 # libtiff is pulled from the maintained upstream release (not the abandoned
 # vadz/libtiff GitHub mirror, whose newest tag is from 2017). Pin to a tagged
-# release tarball and verify its SHA256 so the build is reproducible and the
+# release archive and verify its SHA256 so the build is reproducible and the
 # library carries current security fixes.
-LIBTIFF_VERSION=4.7.1
-LIBTIFF_SHA256=b92017489bdc1db3a4c97191aa4b75366673cb746de0dce5d7a749d5954681ba
-LIBTIFF_TARBALL=tiff-$(LIBTIFF_VERSION).tar.xz
-LIBTIFF_URL=https://download.osgeo.org/libtiff/$(LIBTIFF_TARBALL)
+# Distributed as the .zip release and extracted with unzip: consumer CI images
+# that build this package already ship unzip, whereas xz (and sometimes even
+# gzip) can be absent from a minimal base -- so no downstream image needs an
+# extra decompressor installed just to unpack libtiff.
+LIBTIFF_VERSION=4.7.2
+LIBTIFF_SHA256=964f5556d97301a8ad63e792bac56b0387e3f5e65972d857fec5a059730dd24c
+LIBTIFF_ARCHIVE=tiff-$(LIBTIFF_VERSION).zip
+LIBTIFF_URL=https://download.osgeo.org/libtiff/$(LIBTIFF_ARCHIVE)
 # extracted, repo-local (git-ignored) libtiff source tree
 LIBTIFF_REL=libtiff-src
 TIFF2PDF_C=tiff2pdf/c/tiff2pdf.c
@@ -49,12 +53,13 @@ test: deps $(TIFF2PDF_C)
 
 getdeps:
 	test -f $(LIBTIFF_REL)/libtiff/tiffio.h || ( \
-	    curl -fsSL -o $(LIBTIFF_TARBALL) $(LIBTIFF_URL) && \
-	    echo "$(LIBTIFF_SHA256)  $(LIBTIFF_TARBALL)" | \
+	    curl -fsSL -o $(LIBTIFF_ARCHIVE) $(LIBTIFF_URL) && \
+	    echo "$(LIBTIFF_SHA256)  $(LIBTIFF_ARCHIVE)" | \
 	        (command -v sha256sum >/dev/null 2>&1 && sha256sum -c - || shasum -a 256 -c -) && \
-	    rm -rf $(LIBTIFF_REL) && mkdir -p $(LIBTIFF_REL) && \
-	    tar xf $(LIBTIFF_TARBALL) -C $(LIBTIFF_REL) --strip-components=1 && \
-	    rm -f $(LIBTIFF_TARBALL) )
+	    rm -rf $(LIBTIFF_REL) tiff-$(LIBTIFF_VERSION) && \
+	    unzip -q $(LIBTIFF_ARCHIVE) && \
+	    mv tiff-$(LIBTIFF_VERSION) $(LIBTIFF_REL) && \
+	    rm -f $(LIBTIFF_ARCHIVE) )
 cleandeps:
 	rm -rf $(LIBTIFF_REL)
 configdeps: getdeps

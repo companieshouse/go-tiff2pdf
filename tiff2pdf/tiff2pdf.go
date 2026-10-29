@@ -29,10 +29,12 @@ extern void GoTiffErrorExt(long long fd, char *err);
 import "C"
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"unsafe"
 )
 
-//Config represents the command line tiff2pdf configuration
+// Config represents the command line tiff2pdf configuration
 type Config struct {
 	// PageSize sets the PDF page size, e.g. legal, letter or A4
 	PageSize string
@@ -86,7 +88,7 @@ func createTiff(tiff []byte, name, mode string) (*C.TIFF, error) {
 	return tif, nil
 }
 
-func configureT2p(t2p *C.T2P, config *Config) {
+func configureT2p(t2p *C.T2P, config *Config) (*C.T2P, error) {
 	cPageSize := C.CString(config.PageSize)
 	if r := C.tiff2pdf_match_paper_size(&t2p.pdf_defaultpagewidth, &t2p.pdf_defaultpagelength, cPageSize); r != 0 {
 		t2p.pdf_overridepagesize = 1
@@ -102,19 +104,47 @@ func configureT2p(t2p *C.T2P, config *Config) {
 	}
 
 	// FIXME if len(config.Creator) == 0, is that "no flag" or "empty string"
-	t2p.pdf_creator = stringTo512Cchar(config.Creator)
-	t2p.pdf_author = stringTo512Cchar(config.Author)
-	t2p.pdf_subject = stringTo512Cchar(config.Subject)
-	t2p.pdf_title = stringTo512Cchar(config.Title)
+	if c, err := stringTo512Cchar(config.Creator); err != nil {
+		return nil, err
+	} else {
+		t2p.pdf_creator = c
+	}
+	if a, err := stringTo512Cchar(config.Author); err != nil {
+		return nil, err
+	} else {
+		t2p.pdf_author = a
+	}
+	if s, err := stringTo512Cchar(config.Subject); err != nil {
+		return nil, err
+	} else {
+		t2p.pdf_subject = s
+	}
+	if t, err := stringTo512Cchar(config.Title); err != nil {
+		return nil, err
+	} else {
+		t2p.pdf_title = t
+	}
+	return t2p, nil
 }
 
-func stringTo512Cchar(s string) [512]C.char {
+func stringTo512Cchar(s string) ([512]C.char, error) {
 	var cArr [512]C.char
-	for i, c := range s {
-		cArr[i] = C.char(c)
+
+	if len(s) >= len(cArr) {
+		return cArr, fmt.Errorf(
+			"metadata exceeds maximum length of %d bytes: got %d",
+			len(cArr)-1, len(s),
+		)
 	}
-	cArr[len(s)] = C.char(0)
-	return cArr
+	if strings.IndexByte(s, 0) >= 0 {
+		return cArr, errors.New("metadata contains a NUL byte")
+	}
+
+	for i := 0; i < len(s); i++ {
+		cArr[i] = C.char(s[i])
+	}
+
+	return cArr, nil
 }
 
 // ConvertTiffToPDF converts an input TIFF byte array to an output PDF byte array
@@ -145,7 +175,9 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 		return nil, errors.New("Error: t2p_init") // FIXME capture FD0
 	}
 
-	configureT2p(t2p, config)
+	if _, err := configureT2p(t2p, config); err != nil {
+		return nil, err
+	}
 
 	C.t2p_write_pdf(t2p, input, output)
 	if t2p.t2p_error != 0 {
@@ -163,4 +195,8 @@ func ConvertTiffToPDF(tiff []byte, config *Config, inputName string, outputName 
 		loaded.warnings,
 	}
 	return out, nil
+}
+
+func StringTo512Cchar(s string) ([512]C.char, error) {
+	return stringTo512Cchar(s)
 }
